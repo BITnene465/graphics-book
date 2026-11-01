@@ -262,7 +262,8 @@ export class FigureView {
     }
     this.observer = new IntersectionObserver(
       (entries) => {
-        this.visible = entries[0].isIntersecting;
+        // 同一批可能先离开再进入视口；单一观察对象取最后一条状态。
+        this.visible = entries.at(-1)!.isIntersecting;
         if (this.visible) {
           this.schedule();
           this.animate();

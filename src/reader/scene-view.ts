@@ -366,7 +366,7 @@ export class SceneView {
     this.resize.observe(editor);
     this.intersection = new IntersectionObserver(
       (entries) => {
-        this.visible = entries[0].isIntersecting;
+        this.visible = entries.at(-1)!.isIntersecting;
         if (this.visible && this.dirty) this.scheduleRender();
         if (!this.visible) this.renderClient.cancel();
       },
