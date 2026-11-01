@@ -17,6 +17,7 @@ export type FigureSpec = {
   compute: (params: Params, progress: number) => Frame;
   animated?: boolean;
   duration?: number;
+  initialProgress?: number;
 };
 export const number = (p: Params, key: string): number => p[key] as number;
 export const vec2 = (p: Params, key: string): Vec2 => p[key] as Vec2;

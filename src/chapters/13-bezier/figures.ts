@@ -1,3 +1,4 @@
+import { interpolationFigures } from './interpolation-figures.ts';
 import { Drawing, palette, circle } from '../../figures/drawing.ts';
 import { plot } from '../../figures/helpers.ts';
 import { slider, choice, number, points } from '../../figures/spec.ts';
@@ -246,6 +247,7 @@ export const figures: FigureSpec[] = [
       return d.result();
     },
   },
+  ...interpolationFigures,
 ];
 export const main: FigureSpec = {
   ...figures[0],

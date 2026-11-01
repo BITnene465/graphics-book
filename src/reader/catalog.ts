@@ -10,7 +10,7 @@ export const chapters: Chapter[] = [
   chapter('01', '01-pixels', '像素与颜色', '图像与空间', '2D'),
   chapter('02', '02-transforms', '变换与坐标', '图像与空间', '3D'),
   chapter('03', '03-camera', '相机与投影', '图像与空间', '3D'),
-  chapter('04', '04-barycentric', '三角形与重心坐标', '光栅化与采样', '2D'),
+  chapter('04', '04-barycentric', '图元与光栅化', '光栅化与采样', '2D'),
   chapter('05', '05-sampling', '采样与抗锯齿', '光栅化与采样', '2D'),
   chapter('06', '06-depth', '深度与可见性', '光栅化与采样', '3D'),
   chapter('07', '07-lighting', '法线与光照', '表面与着色', '3D'),

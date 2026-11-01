@@ -1,3 +1,4 @@
+import { quaternionFigure } from './quaternion-figure.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { grid, wire3 } from '../../figures/helpers.ts';
 import { number, vec2, vec3, slider, choice } from '../../figures/spec.ts';
@@ -374,6 +375,7 @@ export const figures: FigureSpec[] = [
       return d.result();
     },
   },
+  quaternionFigure,
 ];
 
 export const main: FigureSpec = {

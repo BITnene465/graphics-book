@@ -203,7 +203,9 @@ $$
 
 [[demo:mesh-refine]]
 
-## 8. 核心实现与练习
+[[include:halfedge-lesson.md]]
+
+## 9. 核心实现与练习
 
 先读 `parametric()`、`implicit()`、`analyticNormal()`，它们分别对应本章的三个短公式。再读 `makeMesh()`：索引连接比位置计算更容易写错，画一个只有两三个纬圈的小图会有帮助。
 

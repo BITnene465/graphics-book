@@ -6,11 +6,15 @@ export async function chapterText(
   load: (path: string) => Promise<string>,
 ): Promise<string> {
   const prefix = `/content/foundations/${chapter.slug}/`;
-  let text = await load(`${prefix}lesson.md`);
-  for (const match of [...text.matchAll(/^\[\[include:([\w-]+\.md)\]\]$/gm)]) {
-    const section = await load(prefix + match[1]);
-    text = text.replace(match[0], () => section);
-  }
-  if (chapter.id === '04') text += '\n' + (await load(prefix + 'raster-lesson.md'));
-  return text;
+  const expand = async (file: string, ancestors: string[]): Promise<string> => {
+    if (ancestors.includes(file))
+      throw new Error(`正文循环引用：${[...ancestors, file].join(' → ')}`);
+    let text = await load(prefix + file);
+    for (const match of [...text.matchAll(/^\[\[include:([\w-]+\.md)\]\]$/gm)]) {
+      const section = await expand(match[1], [...ancestors, file]);
+      text = text.replace(match[0], () => section);
+    }
+    return text;
+  };
+  return expand('lesson.md', []);
 }

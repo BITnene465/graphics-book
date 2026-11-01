@@ -1,3 +1,4 @@
+import { halfedgeFigure } from './halfedge-figure.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { slider, number } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
@@ -115,4 +116,5 @@ export const figures: FigureSpec[] = [
       return d.result();
     },
   },
+  halfedgeFigure,
 ];

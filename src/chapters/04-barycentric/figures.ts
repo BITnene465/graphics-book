@@ -1,3 +1,4 @@
+import { incrementalFigures } from './incremental-figures.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { grid, rgb } from '../../figures/helpers.ts';
 import { number, vec2, points, slider, choice } from '../../figures/spec.ts';
@@ -109,6 +110,7 @@ export const figures: FigureSpec[] = [
       return d.result();
     },
   },
+  ...incrementalFigures,
 ];
 export const main: FigureSpec = {
   id: 'main',

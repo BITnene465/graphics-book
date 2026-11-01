@@ -97,11 +97,11 @@
   pointer-events: none;
 }
 .figure-stage.has-panels {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: var(--figure-columns, repeat(2, minmax(0, 1fr)));
 }
 .figure-stage.has-panels[data-panels='3'],
 .figure-stage[data-many='true'] {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: var(--figure-columns, repeat(3, minmax(0, 1fr)));
 }
 .figure-stage[data-many='true'] {
   height: auto;

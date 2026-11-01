@@ -70,7 +70,7 @@ export class FigureView {
     this.host = host;
     this.spec = spec;
     this.params = structuredClone(saved?.params ?? spec.defaults);
-    this.progress = saved?.progress ?? 1;
+    this.progress = saved?.progress ?? spec.initialProgress ?? 1;
     this.views = new Map(saved?.views ?? []);
     this.panel = saved?.panel ?? '';
     host.className = 'figure-study';
@@ -134,7 +134,7 @@ export class FigureView {
     on(host.querySelector('[data-action="reset"]')!, 'click', () => {
       this.remember();
       this.params = structuredClone(spec.defaults);
-      this.progress = 1;
+      this.progress = spec.initialProgress ?? 1;
       this.playing = false;
       this.views.clear();
       this.sync();
@@ -370,6 +370,12 @@ export class FigureView {
       this.stage.classList.toggle('has-panels', panels.length > 1);
       this.stage.dataset.panels = String(panels.length);
       this.stage.dataset.many = String(panels.length > 3);
+      this.stage.style.setProperty(
+        '--figure-columns',
+        panels.length > 3
+          ? 'repeat(3, minmax(0, 1fr))'
+          : panels.map((p) => `minmax(0, ${p.columns}fr)`).join(' '),
+      );
       if (!next.has(this.panel)) this.panel = panels[0].key;
       const keys = panels.map((p) => p.key).join('|');
       if (keys !== this.panelKeys) {
@@ -558,9 +564,11 @@ export class FigureView {
         }),
       );
       if (h.label) {
+        const left = x + (h.label.length * 12 + 20) * pixel > width;
         const label = svg('text', {
-          x: x + 12 * pixel,
-          y: y + 23 * pixel,
+          x: x + (left ? -12 : 12) * pixel,
+          y: y + (y + 27 * pixel > height ? -14 : 23) * pixel,
+          'text-anchor': left ? 'end' : 'start',
           fill: '#f4d66a',
           'font-size': 12 * pixel,
           stroke: '#111824',

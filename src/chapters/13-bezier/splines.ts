@@ -83,7 +83,8 @@ export function joinDiagnostics(
     tangentCosine: g1Defined ? Math.max(-1, Math.min(1, dot(ul, ur))) : null,
   };
 }
-function inputs(knots: number[], degree: number, u: number): number {
+/** 验证结点与活动域，返回所需控制点数；两种求值算法共用输入约定。 */
+export function splineSize(knots: number[], degree: number, u: number): number {
   finite([...knots, u]);
   if (
     !Number.isInteger(degree) ||
@@ -125,11 +126,11 @@ function basisLevels(knots: number[], degree: number, u: number, count: number):
   return levels;
 }
 export function bsplineBasis(knots: number[], degree: number, u: number): number[] {
-  const n = inputs(knots, degree, u);
+  const n = splineSize(knots, degree, u);
   return basisLevels(knots, degree, u, n)[degree];
 }
 export function basisDerivative(knots: number[], degree: number, u: number, order = 1): number[] {
-  const n = inputs(knots, degree, u);
+  const n = splineSize(knots, degree, u);
   if (!Number.isInteger(order) || order < 0 || order > 8) throw new RangeError('导数阶数非法');
   if (order > degree) return Array(n).fill(0);
   let levels = basisLevels(knots, degree, u, n);
