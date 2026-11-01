@@ -1,4 +1,6 @@
 import { halfedgeFigure } from './halfedge-figure.ts';
+import { csgFigures } from './csg-figures.ts';
+import { octreeFigures } from './octree-figures.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { slider, number } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
@@ -117,4 +119,6 @@ export const figures: FigureSpec[] = [
     },
   },
   halfedgeFigure,
+  ...csgFigures,
+  ...octreeFigures,
 ];

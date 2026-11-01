@@ -122,6 +122,9 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
+  max-height: calc(clamp(290px, 32vw, 380px) + 38px);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 .figure-control label {
   display: flex;
@@ -260,6 +263,9 @@
 .figure-study:fullscreen .figure-stage svg {
   max-height: 75vh;
 }
+.figure-study:fullscreen .figure-controls {
+  max-height: 75vh;
+}
 @media (max-width: 1100px) {
   .figure-layout {
     grid-template-columns: minmax(0, 1fr) 155px;
@@ -355,6 +361,8 @@
 
   .figure-controls {
     display: grid;
+    max-height: none;
+    overflow-y: visible;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     border-left: 0;
     border-top: 1px solid var(--exp-line);

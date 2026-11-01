@@ -20,7 +20,7 @@ test('教材的聚焦演示均有实际计算实现，编号没有重复', async
   const ids = specs.filter((s) => s.id !== 'main').map((s) => s.id);
   ids.push('camera-framing');
   assert.equal(new Set(ids).size, ids.length);
-  assert.ok(ids.length >= 64, '基础补写的聚焦演示不能丢失');
+  assert.ok(ids.length >= 73, '两批基础补写的聚焦演示不能丢失');
   const files = await readdir(path.join(root, 'content/foundations'), { recursive: true });
   for (const file of files.filter((f) => f.endsWith('.md'))) {
     const text = await readFile(path.join(root, 'content/foundations', file), 'utf8');

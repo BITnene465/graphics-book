@@ -1,4 +1,6 @@
 import { interpolationFigures } from './interpolation-figures.ts';
+import { fittingFigures } from './fitting-figures.ts';
+import { curvatureFigures } from './curvature-figures.ts';
 import { Drawing, palette, circle } from '../../figures/drawing.ts';
 import { plot } from '../../figures/helpers.ts';
 import { slider, choice, number, points } from '../../figures/spec.ts';
@@ -248,6 +250,8 @@ export const figures: FigureSpec[] = [
     },
   },
   ...interpolationFigures,
+  ...fittingFigures,
+  ...curvatureFigures,
 ];
 export const main: FigureSpec = {
   ...figures[0],

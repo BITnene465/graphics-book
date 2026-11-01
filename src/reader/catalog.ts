@@ -18,7 +18,7 @@ export const chapters: Chapter[] = [
   chapter('09', '09-texture-functions', '纹理作为函数', '表面与着色', '3D'),
   chapter('10', '10-shadows', '阴影映射', '表面与着色', '3D'),
   chapter('11', '11-pipeline', '一条完整的光栅管线', '表面与着色', '3D'),
-  chapter('12', '12-geometry', '几何的三种表达', '几何', '3D'),
+  chapter('12', '12-geometry', '几何表示与空间组织', '几何', '3D'),
   chapter('13', '13-bezier', '曲线与样条', '几何', '2D'),
   chapter('14', '14-surfaces', '从曲线到曲面', '几何', '3D'),
   chapter('15', '15-rays', '光线追踪', '光线追踪', '3D'),
