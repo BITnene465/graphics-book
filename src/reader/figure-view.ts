@@ -468,7 +468,7 @@ export class FigureView {
       height = (width * (y1 - y0)) / (x1 - x0),
       s = width / (x1 - x0);
     canvas.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    // Text and picking targets keep their screen size across panels and zoom levels.
+    // 文字与拾取目标保持屏幕尺寸，不随数学视域缩放。
     const pixel = 1 / Math.max(0.01, Math.abs(canvas.getScreenCTM()?.a ?? 1));
     canvas.dataset.bounds = JSON.stringify(view);
     const point = (p: number[]): number[] => [(p[0] - x0) * s, (y1 - p[1]) * s],
@@ -583,15 +583,42 @@ export class FigureView {
     });
     const active = canvas.querySelector(':focus')?.getAttribute('data-handle');
     canvas.replaceChildren(group);
+    if (key) {
+      const caption = svg('text', {
+        x: 14 * pixel,
+        y: 22 * pixel,
+        fill: '#aebfd1',
+        'font-size': 11 * pixel,
+        stroke: '#101722',
+        'stroke-width': 5 * pixel,
+        'paint-order': 'stroke fill',
+        'pointer-events': 'none',
+        class: 'figure-panel-caption',
+      });
+      caption.textContent = key;
+      canvas.append(caption);
+    }
     if (active)
       canvas.querySelector<SVGElement>(`[data-handle="${active}"]`)?.focus({ preventScroll: true });
   }
+  private rotateView(azimuth: number, elevation: number): void {
+    for (const [key, value] of Object.entries({ azimuth, elevation })) {
+      const control = this.spec.controls.find((c) => c.key === key);
+      if (control && 'min' in control)
+        this.params[key] = Math.max(control.min, Math.min(control.max, value));
+    }
+    this.sync();
+    this.schedule();
+  }
   private bindCanvas(canvas: SVGSVGElement, key: string): void {
     const signal = this.abort.signal;
+    const canOrbit = this.spec.orbitPanels?.includes(key);
+    if (canOrbit) canvas.setAttribute('title', '拖动旋转 · 右键或 Shift 拖动平移 · 方向键旋转');
     let drag:
       | {
           pointer: number;
           handle?: Handle;
+          orbit: boolean;
           start: number[];
           offset: number[];
           screen: number[];
@@ -655,6 +682,7 @@ export class FigureView {
         drag = {
           pointer: event.pointerId,
           handle,
+          orbit: !!canOrbit && !handle && event.button === 0 && !event.shiftKey,
           start: at,
           offset: handle ? handle.at.map((x, i) => x - at[i]) : [0, 0],
           screen: [event.clientX, event.clientY],
@@ -668,7 +696,9 @@ export class FigureView {
         if (target && handle) (target as SVGElement).focus({ preventScroll: true });
         this.host.querySelector('.figure-selection')!.textContent = handle
           ? handle.label || handle.key
-          : '平移视图';
+          : drag.orbit
+            ? '旋转视图'
+            : '平移视图';
         this.sync();
         this.schedule();
       },
@@ -696,6 +726,11 @@ export class FigureView {
           if (event.shiftKey)
             for (let i = 0; i < 2; i++) target[i] = Math.round(target[i] * 10) / 10;
           this.moveHandle(drag.handle, target, drag.previous.params);
+        } else if (drag.orbit) {
+          this.rotateView(
+            Number(drag.previous.params.azimuth) - (event.clientX - drag.screen[0]) * 0.4,
+            Number(drag.previous.params.elevation) + (event.clientY - drag.screen[1]) * 0.4,
+          );
         } else {
           const view = new Map(drag.previous.views).get(key) ?? { zoom: 1, x: 0, y: 0 };
           const rect = canvas.getBoundingClientRect();
@@ -762,6 +797,18 @@ export class FigureView {
           return;
         }
         const target = (event.target as Element).closest('[data-handle]');
+        if (!target && canOrbit && event.key.startsWith('Arrow')) {
+          event.preventDefault();
+          this.remember();
+          const step = event.shiftKey ? 0.25 : 2;
+          this.rotateView(
+            Number(this.params.azimuth) +
+              (event.key === 'ArrowLeft' ? step : event.key === 'ArrowRight' ? -step : 0),
+            Number(this.params.elevation) +
+              (event.key === 'ArrowDown' ? step : event.key === 'ArrowUp' ? -step : 0),
+          );
+          return;
+        }
         if (!target || !event.key.startsWith('Arrow')) return;
         event.preventDefault();
         const handle = this.frame!.handles[Number(target.getAttribute('data-handle'))];

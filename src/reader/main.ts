@@ -118,9 +118,10 @@ function setNavigation(open: boolean): void {
   else if ($('#navigation').contains(document.activeElement)) $('#toggle-navigation').focus();
 }
 function revealDirectory(): void {
-  $(outlineMode ? '#section-list' : '#chapter-list')
-    .querySelector('.active')
-    ?.scrollIntoView({ block: 'nearest' });
+  const active = $(outlineMode ? '#section-list' : '#chapter-list').querySelector('.active');
+  const group = active?.closest('details');
+  if (group) group.open = true;
+  active?.scrollIntoView({ block: 'nearest' });
 }
 function setOutline(active: boolean, open = false): void {
   outlineMode = active;
@@ -359,8 +360,11 @@ async function navigate(query: string, push = true, historyPosition?: Position):
     for (const link of $('#chapter-list').querySelectorAll<HTMLAnchorElement>('[data-chapter]')) {
       const active = !appendix && link.dataset.chapter === entry.id;
       link.classList.toggle('active', active);
-      if (active) link.setAttribute('aria-current', 'page');
-      else link.removeAttribute('aria-current');
+      if (active) {
+        link.setAttribute('aria-current', 'page');
+        const part = link.closest('details');
+        if (part) part.open = true;
+      } else link.removeAttribute('aria-current');
     }
     for (const link of $('#appendix-list').querySelectorAll<HTMLAnchorElement>('a'))
       link.classList.toggle('active', link.dataset.appendix === appendix?.id);
@@ -384,17 +388,21 @@ async function navigate(query: string, push = true, historyPosition?: Position):
 }
 
 let part = '';
+let group: HTMLDetailsElement;
 for (const entry of chapters) {
   if (entry.part !== part) {
-    const heading = document.createElement('h2');
+    group = document.createElement('details');
+    group.className = 'book-part';
+    const heading = document.createElement('summary');
     heading.textContent = part = entry.part;
-    $('#chapter-list').append(heading);
+    group.append(heading);
+    $('#chapter-list').append(group);
   }
   const link = document.createElement('a');
   link.dataset.chapter = entry.id;
   link.href = chapterHref(entry);
   link.innerHTML = `<span>${entry.id}</span><strong>${entry.title}</strong>`;
-  $('#chapter-list').append(link);
+  group!.append(link);
 }
 for (const appendix of appendices) {
   const link = document.createElement('a');

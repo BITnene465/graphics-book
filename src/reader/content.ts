@@ -5,7 +5,7 @@ export async function chapterText(
   chapter: Chapter,
   load: (path: string) => Promise<string>,
 ): Promise<string> {
-  const prefix = `/content/foundations/${chapter.slug}/`;
+  const prefix = `/content/${chapter.module}/${chapter.slug}/`;
   const expand = async (file: string, ancestors: string[]): Promise<string> => {
     if (ancestors.includes(file))
       throw new Error(`正文循环引用：${[...ancestors, file].join(' → ')}`);

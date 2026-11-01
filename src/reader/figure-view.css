@@ -338,6 +338,9 @@
   .figure-stage.has-panels > svg[data-active='false'] {
     display: none;
   }
+  .figure-stage.has-panels .figure-panel-caption {
+    display: none;
+  }
   .figure-panel-tabs:not(:empty) {
     display: flex;
     gap: 5px;

@@ -143,11 +143,26 @@ button {
   scrollbar-width: thin;
   scrollbar-color: #c7d2c5 transparent;
 }
-#chapter-list h2 {
-  font-size: 10px;
-  color: #829588;
-  font-weight: 500;
-  margin: 23px 18px 10px;
+#chapter-list .book-part > summary {
+  font-size: 11px;
+  color: #6a8075;
+  font-weight: 600;
+  margin: 0;
+  padding: 14px 18px 9px;
+  cursor: pointer;
+  letter-spacing: 0.045em;
+  user-select: none;
+}
+#chapter-list .book-part > summary:hover {
+  color: #304d42;
+  background: #dbe4d644;
+}
+#chapter-list .book-part > summary:focus-visible {
+  outline: 2px solid #397baf;
+  outline-offset: -3px;
+}
+#chapter-list .book-part[open] {
+  padding-bottom: 8px;
 }
 #chapter-list a {
   display: flex;

@@ -8,7 +8,7 @@
 
 本章采用平行光与正交光源相机；主相机仍是透视相机。光源初始朝向世界原点，改变目标点可以调整平行观察线的方向；光源位置在这里用于定义平行光方向。本章依次建立光深度图、恢复相机看见的世界点、比较它在光空间中的远近，最后分析有限采样造成的偏移与过滤问题。
 
-## 1. 第一遍：光源视角的深度缓冲
+## 1 · 第一遍：光源视角的深度缓冲
 
 设世界点为 $p_w$，参与矩阵乘法时补成齐次列向量 $(x,y,z,1)^T$。光源视图矩阵为 $V_L$，光源投影矩阵为 $P_L$：
 
@@ -22,7 +22,7 @@ $$
 
 代码里 `rasterizeWorld()` 同时用于光源和主相机，因此两次渲染使用同一套[第 04 章](?chapter=barycentric)裁剪与覆盖规则。第一个调用写光源深度，第二个调用写主相机可见表面。
 
-## 2. 第二遍先恢复相机看见的世界点
+## 2 · 第二遍先恢复相机看见的世界点
 
 主相机的深度缓冲先确定这个像素最终看见哪个三角形。接下来需要命中点的世界位置，才能向光源提出同一个点是否可见的问题。主相机采用透视投影，设像素的屏幕重心坐标为 $\lambda_i$，顶点世界位置为 $p_i$，顶点主相机 clip 的第四分量为 $w_i$。正确的世界位置是：
 
@@ -34,7 +34,7 @@ $$
 
 齐次裁剪会生成新顶点。那些顶点的世界位置必须与 clip 坐标按同一个交点参数更新，然后再参与透视正确插值。代码把世界位置作为 `clipTriangle()` 的属性传入，没有在裁剪后猜测新顶点原本在哪里。
 
-## 3. 将同一个世界点投到光空间
+## 3 · 将同一个世界点投到光空间
 
 上一节已经得到相机可见点的世界位置 $p_w$。将它补为齐次点后乘以 $P_LV_L$，得到光空间坐标 $(x_L,y_L,z_L,w_L)$。
 
@@ -68,7 +68,7 @@ $$
 
 [[demo:shadow-compare]]
 
-## 4. bias 为什么既有用，又会出错
+## 4 · bias 为什么既有用，又会出错
 
 如果光源和主相机恰好采到同一个连续表面点，而且计算完全精确，接收点深度与阴影图中对应表面的深度应一致。但两张图的像素网格不同。主相机当前点通常不等于光源 texel 中心对应的点，斜面上的两个点具有不同深度。
 
@@ -94,7 +94,7 @@ $$
 
 本章只用常量接收端 bias，以便清楚观察误差和权衡。坡度相关 bias、法线偏移和更紧的光源投影范围都是进一步改进方向，但也各有代价。
 
-## 5. PCF：平均比较结果，而不是平均深度
+## 5 · PCF：平均比较结果，而不是平均深度
 
 阴影图分辨率有限，硬比较会在边缘形成阶梯。PCF（percentage-closer filtering）在附近读取多个 texel，先各自比较，再平均结果：
 
@@ -118,7 +118,7 @@ PCF 的灰色表示邻域比较的通过比例，不表示这个平行光忽然�
 
 即使世界地面水平，在斜向光源坐标中也存在深度坡度。核增大后读取更远的邻居，却仍使用接收点的同一个深度；常量 bias 可能不足，产生并非柱子投影的自阴影条纹。因此比较核大小时要固定 bias，比较 bias 时要固定核。否则无法判断改善来自过滤还是放宽了深度比较。
 
-## 6. 光源裁剪体外的边界处理
+## 6 · 光源裁剪体外的边界处理
 
 阴影图只记录光源相机裁剪体内的几何。本章对体外接收点采用明确策略：**没有阴影信息时按受光处理。** 查询返回的 `inside_light` 标记该点是否在光源裁剪体内。这是一种边界约定，不是证明外面不存在遮挡物。
 
@@ -128,7 +128,7 @@ PCF 的灰色表示邻域比较的通过比例，不表示这个平行光忽然�
 
 UV 恰好位于 1 的边界时，本章把它映射到最后一个 texel；这与越过边界的点分开处理。测试还检查四角 UV 与数组行号对应，避免一张左右或上下翻转的阴影图「看起来似乎有阴影」却没有正确空间关系。
 
-## 7. 阴影如何进入颜色
+## 7 · 阴影如何进入颜色
 
 本章使用简单漫反射帮助观察几何，线性 RGB 中的颜色为：
 
@@ -144,7 +144,7 @@ $\rho$ 是材料颜色，$V$ 是光的可见率，$n$ 与 $l$ 都在世界空间
 
 [[demo:main]]
 
-## 8. 两道练习与实现边界
+## 8 · 两道练习与实现边界
 
 `exercises.ts` 留了两个小函数：将一个光 clip 坐标转成 UV 和深度；实现先比较后平均的 PCF。自检包含左上角映射、前后深度边界、精确相等、bias 和 $0.2/0.8$ 反例。
 
@@ -165,7 +165,7 @@ $\rho$ 是材料颜色，$V$ 是光的可见率，$n$ 与 $l$ 都在世界空间
 ## 经典阅读
 
 - **Microsoft，“Common Techniques to Improve Shadow Depth Maps”**：阅读 “Shadow Depth Maps Review” 的两遍过程，以及 “Shadow Acne” 和 “Peter Panning” 两节，对照本节的光源深度、最终成像与偏移反例。[官方技术文档](https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps)
-- **Michael Bunnell、Fabio Pellacini，GPU Gems，第 11 章 “Shadow Map Antialiasing”**：重点读 §11.2 的先比较后过滤，区分原始 PCF 与本章固定方形核的简化版本。[官方书籍正文](https://developer.nvidia.com/gpugems/gpugems/part-ii-lighting-and-shadows/chapter-11-shadow-map-antialiasing)
+- **Michael Bunnell、Fabio Pellacini，GPU Gems，[第 11 章](?chapter=pipeline) “Shadow Map Antialiasing”**：重点读 §11.2 的先比较后过滤，区分原始 PCF 与本章固定方形核的简化版本。[官方书籍正文](https://developer.nvidia.com/gpugems/gpugems/part-ii-lighting-and-shadows/chapter-11-shadow-map-antialiasing)
 - **GPU Gems 3，第 8 章 “Summed-Area Variance Shadow Maps”，§8.3**：比较普通深度图、PCF 与可以过滤深度统计量的其他表示；不要把它们混为同一种滤波。[官方书籍正文](https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-8-summed-area-variance-shadow-maps)
 
 本章场景、图像、中文推导和 TypeScript 代码为原创组织。经典资料用于核对原理、辨认近似和继续深入。

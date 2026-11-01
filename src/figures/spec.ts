@@ -14,6 +14,8 @@ export type FigureSpec = {
   source: string;
   defaults: Params;
   controls: Control[];
+  /** 这些空间子图可直接环绕；共用 azimuth/elevation 角度参数。 */
+  orbitPanels?: string[];
   compute: (params: Params, progress: number) => Frame;
   animated?: boolean;
   /** 以秒计的完整播放时长；默认 7 秒。 */

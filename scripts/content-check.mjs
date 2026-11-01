@@ -12,15 +12,28 @@ const issues = [];
 if (chapters.some((chapter, i) => chapter.id !== String(i + 1).padStart(2, '0')))
   issues.push('章节编号必须按阅读顺序连续');
 const chapterKeys = new Map(chapters.map((chapter) => [chapterKey(chapter), chapter]));
+for (const chapter of chapters) {
+  const lesson = `content/${chapter.module}/${chapter.slug}/lesson.md`;
+  if (!existsSync(lesson)) issues.push(`目录章节缺少正文：${lesson}`);
+}
 for (const file of walk('content')) {
   const source = readFileSync(file, 'utf8'),
     html = markdown.render(source);
   if (html.includes('katex-error')) issues.push(`${file}: 无法排版的公式`);
+  if (/^\$$/m.test(source)) issues.push(`${file}: 独立公式使用双美元符号，避免被当作正文`);
+  for (const [alias, term] of [
+    ['节点向量', '结点向量'],
+    ['光线跟踪', '光线追踪'],
+    ['反向运动学', '逆向运动学'],
+    ['形式因子', '形状因子'],
+    ['半正定', '正半定'],
+  ])
+    if (source.includes(alias)) issues.push(`${file}: 术语“${alias}”统一为“${term}”`);
   if (/\b(Python|NumPy|Pyodide|ValueError|uv run|np\.)\b|\w+\.py\b|```python/.test(source))
     issues.push(`${file}: 旧运行说明`);
   for (const include of source.matchAll(/\[\[include:([^\]]+)\]\]/g))
     if (!existsSync(resolve(dirname(file), include[1]))) issues.push(`${file}: 缺少 ${include[1]}`);
-  const slug = file.match(/foundations\/(\d\d-[^/]+)\//)?.[1];
+  const slug = file.match(/content\/[^/]+\/(\d\d-[^/]+)\//)?.[1];
   if (slug && file.endsWith('/lesson.md') && !source.startsWith(`# ${slug.slice(0, 2)} ·`))
     issues.push(`${file}: 标题章号与目录不一致`);
   for (const match of source.matchAll(/\[(?:第\s*)?(\d\d)[^\]]*\]\(\?chapter=([\w-]+)\)/g))

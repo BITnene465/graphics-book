@@ -21,9 +21,9 @@ test('教材的聚焦演示均有实际计算实现，编号没有重复', async
   ids.push('camera-framing');
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(ids.length >= 79, '基础篇完成版的聚焦演示不能丢失');
-  const files = await readdir(path.join(root, 'content/foundations'), { recursive: true });
+  const files = await readdir(path.join(root, 'content'), { recursive: true });
   for (const file of files.filter((f) => f.endsWith('.md'))) {
-    const text = await readFile(path.join(root, 'content/foundations', file), 'utf8');
+    const text = await readFile(path.join(root, 'content', file), 'utf8');
     for (const match of text.matchAll(/\[\[demo:([\w-]+)\]\]/g))
       if (match[1] !== 'main') assert.ok(ids.includes(match[1]), `${file}: ${match[1]} 未实现`);
   }
@@ -71,4 +71,18 @@ test('参数面板承诺的范围与选项都能生成有限图形', () => {
           );
       }
     }
+});
+
+test('双目视线退化与同色抠图显示不可识别，而不是伪造数值解', () => {
+  const stereo = specs.find((s) => s.id === 'stereo-triangulation')!;
+  const parallel = stereo.compute(
+    { ...stereo.defaults, baseline: 0.15, error: 0.05, target: [0.3, 3] },
+    1,
+  );
+  assert.equal(parallel.values.状态, '视线平行');
+  assert.equal(parallel.values.重建轴向距离, '无法确定');
+  const matting = specs.find((s) => s.id === 'alpha-color-line')!;
+  const ambiguous = matting.compute({ ...matting.defaults, contrast: 0 }, 1);
+  assert.match(String(ambiguous.values.状态), /不能由 C 恢复/);
+  assert.equal(ambiguous.items.filter((item) => item.kind === 'raster').length, 1);
 });

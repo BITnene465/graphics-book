@@ -1,11 +1,19 @@
-export type Chapter = { id: string; slug: string; title: string; part: string; kind: '2D' | '3D' };
+export type Chapter = {
+  id: string;
+  slug: string;
+  title: string;
+  part: string;
+  kind: '2D' | '3D';
+  module: string;
+};
 const chapter = (
   id: string,
   slug: string,
   title: string,
   part: string,
   kind: '2D' | '3D',
-): Chapter => ({ id, slug, title, part, kind });
+  module = 'foundations',
+): Chapter => ({ id, slug, title, part, kind, module });
 export const chapters: Chapter[] = [
   chapter('01', '01-pixels', '像素与颜色', '图像与空间', '2D'),
   chapter('02', '02-transforms', '变换与坐标', '图像与空间', '3D'),
@@ -22,6 +30,37 @@ export const chapters: Chapter[] = [
   chapter('13', '13-bezier', '曲线与样条', '几何', '2D'),
   chapter('14', '14-surfaces', '从曲线到曲面', '几何', '3D'),
   chapter('15', '15-rays', '光线追踪', '光线追踪', '3D'),
+  chapter('16', '16-subdivision', '细分与极限曲面', '几何处理与建模', '3D', 'geometry'),
+  chapter('17', '17-fairing', '平滑与离散算子', '几何处理与建模', '3D', 'geometry'),
+  chapter('18', '18-remeshing', '简化与重网格', '几何处理与建模', '3D', 'geometry'),
+  chapter('19', '19-parameterization', '从网格反求参数域', '几何处理与建模', '3D', 'geometry'),
+  chapter('20', '20-deformation', '约束与几何形变', '几何处理与建模', '3D', 'geometry'),
+  chapter('21', '21-reconstruction', '三维获取与重建', '几何处理与建模', '3D', 'geometry'),
+  chapter('22', '22-procedural-modeling', '规则生成形体', '几何处理与建模', '3D', 'geometry'),
+  chapter('23', '23-radiometry', '光的度量', '光传输', '3D', 'light-transport'),
+  chapter('24', '24-materials', '反射、折射与材质', '光传输', '3D', 'light-transport'),
+  chapter('25', '25-global-illumination', '全局光照与辐射度', '光传输', '3D', 'light-transport'),
+  chapter('26', '26-path-tracing', '随机积分与路径追踪', '光传输', '3D', 'light-transport'),
+  chapter('27', '27-acceleration', '加速可见性查询', '光传输', '3D', 'light-transport'),
+  chapter('28', '28-matting', '抠图与透明合成', '图像处理', '2D', 'image-processing'),
+  chapter('29', '29-image-editing', '颜色与梯度域编辑', '图像处理', '2D', 'image-processing'),
+  chapter('30', '30-retargeting', '内容感知缩放', '图像处理', '2D', 'image-processing'),
+  chapter('31', '31-registration', '配准与图像拼接', '图像处理', '2D', 'image-processing'),
+  chapter('32', '32-lenses', '镜头、光圈与景深', '计算摄像', '3D', 'computational-imaging'),
+  chapter('33', '33-sensors', '传感器与数码重建', '计算摄像', '2D', 'computational-imaging'),
+  chapter(
+    '34',
+    '34-computational-imaging',
+    '编码、反演与光场',
+    '计算摄像',
+    '2D',
+    'computational-imaging',
+  ),
+  chapter('35', '35-stylization', '边缘、色阶与笔画', '风格化绘制', '2D', 'stylization'),
+  chapter('36', '36-texture-synthesis', '纹理合成与时间一致性', '风格化绘制', '2D', 'stylization'),
+  chapter('37', '37-keyframes', '关键帧与形状插值', '动画与模拟', '3D', 'animation'),
+  chapter('38', '38-kinematics', '关节、约束与蒙皮', '动画与模拟', '3D', 'animation'),
+  chapter('39', '39-dynamics', '粒子、动力学与群体', '动画与模拟', '3D', 'animation'),
 ];
 
 /** 名称链接不随编排变化。数字链接只用于兼容初版的书签。 */
@@ -45,7 +84,10 @@ const legacyKeys = [
   'surfaces',
 ];
 export function resolveChapter(value: string | null): Chapter {
-  const key = value && /^\d{2}$/.test(value) ? legacyKeys[Number(value) - 1] : value;
+  const key =
+    value && /^\d{2}$/.test(value)
+      ? (legacyKeys[Number(value) - 1] ?? chapters.find((c) => c.id === value)?.slug)
+      : value;
   return chapters.find((entry) => chapterKey(entry) === key || entry.slug === key) ?? chapters[0];
 }
 
