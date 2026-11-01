@@ -73,7 +73,12 @@ test('余弦采样单位长度、半球与方向一阶矩；重要性估计方�
     importance = estimateSquare(10000, 8, true);
   near(uniform.mean, 1 / 3, 0.01);
   near(importance.mean, 1 / 3, 0.01);
+  assert.ok(importance.variance !== null && uniform.variance !== null);
   assert.ok(importance.variance < uniform.variance);
+  near(uniform.variance, 4 / 45, 0.004);
+  near(importance.variance, 1 / 72, 0.001);
+  assert.equal(estimateSquare(1, 8).variance, null);
+  assert.throws(() => estimateSquare(0, 8), RangeError);
   assert.deepEqual(renderPaths(5, 4, 3, 2, 7), renderPaths(5, 4, 3, 2, 7));
 });
 test('BVH 与穷举球求交一致，平行盒查询不丢失边界', () => {

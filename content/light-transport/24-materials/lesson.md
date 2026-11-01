@@ -12,7 +12,14 @@ $$
 
 其单位为 sr⁻¹。反射率 $\rho$ 无量纲，两者不能互换。理想 Lambert 漫反射取 $f_r=\rho/\pi$，因为 $\int_{\Omega^+}\cos\theta\,d\omega=\pi$。[第 07 章](?chapter=lighting)的余弦明暗项隐藏了照明和系数约定；进入物理积分后，应显式保留 $1/\pi$。
 
-被动表面要求对每个入射方向，$\int f_r\cos\theta_o\,d\omega_o\le1$；互易材质还满足交换两个方向后 BRDF 不变。点值超过 1 并不自动违反能量守恒，约束的是带测度的积分。
+归一化中的 $\pi$ 可以直接算出。以法线为极轴，$d\omega=\sin\theta\,d\theta\,d\varphi$，则
+
+$$
+\int_0^{2\pi}\!\int_0^{\pi/2}\cos\theta\sin\theta\,d\theta\,d\varphi
+=2\pi\left[\frac12\sin^2\theta\right]_0^{\pi/2}=\pi.
+$$
+
+若省去 $1/\pi$，同样的反射率参数在半球积分后就会多出一个 $\pi$ 倍。被动表面要求对每个入射方向，$\int f_r\cos\theta_o\,d\omega_o\le1$；互易材质还满足交换两个方向后 BRDF 不变。点值超过 1 并不自动违反能量守恒，约束的是带测度的积分。
 
 ## 2 · 微表面把粗糙度变成统计模型
 
@@ -48,6 +55,15 @@ Beer–Lambert 定律用吸收系数 $\sigma_a$ 与实际路程 $s$ 给出透射
 
 依次阅读 `fresnel`、`ggxDistribution`、`smithG1`、`ggx` 和 `beerLambert`。先核对法向 4% 反射，再检查临界角与交换入射/出射方向的 BRDF 对称性。
 
+**核对算例。** 若整个入射半球辐亮度为 1 W/(m²·sr)，则 $E=\pi$ W/m²。反射率 $\rho=0.6$ 的 Lambert 表面有 $f_r=0.6/\pi$ sr⁻¹，出射辐亮度为 0.6 W/(m²·sr)。将入射强度加倍会使结果加倍，改变反射率才改变接收能量中被反射的比例。
+
 自查：为什么半程向量不能用两个未经单位化的方向直接相加？透明与无反射是否等价？为何 BRDF 的峰值不能直接当反射率？
+
+<details class="self-check">
+<summary>自查提示</summary>
+
+半程向量要求先统一两个方向的长度，否则长度也会偏移角平分方向。透明介质仍可在界面反射。BRDF 是方向密度式分配，能量约束必须对出射方向带余弦积分，不能仅检查峰值是否超过 1。
+
+</details>
 
 下一章将局部响应放回整个场景，形成表面之间相互照明的积分方程。

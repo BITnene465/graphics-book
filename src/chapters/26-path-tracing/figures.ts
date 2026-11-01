@@ -40,7 +40,7 @@ export const figures: FigureSpec[] = [
         样本数: N,
         估计积分: e.mean,
         绝对误差: Math.abs(e.mean - 1 / 3),
-        估计标准误差: Math.sqrt(e.variance / N),
+        估计标准误差: e.variance === null ? '至少需要两个样本' : Math.sqrt(e.variance / N),
       };
       return d.result();
     },

@@ -15,23 +15,26 @@ export function cosineHemisphere(normal: Vec3, rng: () => number): Vec3 {
   ) as Vec3;
 }
 export function estimateSquare(samples: number, seed: number, importance = false) {
+  if (!Number.isInteger(samples) || samples < 1) throw new RangeError('样本数必须为正整数');
   const rng = random(seed);
-  let sum = 0,
-    sum2 = 0;
+  let mean = 0,
+    squaredDeviations = 0;
   const running: number[] = [];
   for (let i = 0; i < samples; i++) {
     const u = Math.max(Number.EPSILON, rng()),
       x = importance ? Math.sqrt(u) : u,
       pdf = importance ? 2 * x : 1,
       v = (x * x) / pdf;
-    sum += v;
-    sum2 += v * v;
-    running.push(sum / (i + 1));
+    // 在线更新均值与离均差，避免两个很接近的大数相减。
+    const delta = v - mean;
+    mean += delta / (i + 1);
+    squaredDeviations += delta * (v - mean);
+    running.push(mean);
   }
   return {
     running,
-    mean: sum / samples,
-    variance: samples > 1 ? (sum2 - (sum * sum) / samples) / (samples - 1) : 0,
+    mean,
+    variance: samples > 1 ? squaredDeviations / (samples - 1) : null,
   };
 }
 /** 仅漫反射 + 无限远环境；固定反射深度带来截断偏差。 */
