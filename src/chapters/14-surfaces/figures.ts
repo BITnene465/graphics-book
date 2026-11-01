@@ -1,5 +1,6 @@
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { normalCurvatureFigure } from './curvature-figure.ts';
+import { nurbsFigures } from './nurbs-figures.ts';
 import { slider, choice, number } from '../../figures/spec.ts';
 import type { FigureSpec, Params } from '../../figures/spec.ts';
 import type { Vec3 } from '../../math/vector.ts';
@@ -189,4 +190,5 @@ export const figures: FigureSpec[] = [
     },
   },
   normalCurvatureFigure,
+  ...nurbsFigures,
 ];

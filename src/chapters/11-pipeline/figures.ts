@@ -1,4 +1,5 @@
 import { Drawing, palette } from '../../figures/drawing.ts';
+import { parallelFigure } from './parallel-figure.ts';
 import { rectangle, bitmap, rgb } from '../../figures/helpers.ts';
 import { slider, choice, number } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
@@ -7,6 +8,7 @@ import { lookAt, perspective } from '../03-camera/core.ts';
 import { gridScene, renderFrame, sourceOver, fragmentStage } from './core.ts';
 
 export const figures: FigureSpec[] = [
+  parallelFigure,
   {
     id: 'pipeline-stages',
     chapter: '11',

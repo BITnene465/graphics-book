@@ -14,7 +14,7 @@ export const chapters: Chapter[] = [
   chapter('05', '05-sampling', '采样与抗锯齿', '光栅化与采样', '2D'),
   chapter('06', '06-depth', '深度与可见性', '光栅化与采样', '3D'),
   chapter('07', '07-lighting', '法线与光照', '表面与着色', '3D'),
-  chapter('08', '08-textures', '纹理与透视插值', '表面与着色', '3D'),
+  chapter('08', '08-textures', '纹理映射与过滤', '表面与着色', '3D'),
   chapter('09', '09-texture-functions', '纹理作为函数', '表面与着色', '3D'),
   chapter('10', '10-shadows', '阴影映射', '表面与着色', '3D'),
   chapter('11', '11-pipeline', '一条完整的光栅管线', '表面与着色', '3D'),

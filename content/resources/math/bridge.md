@@ -83,7 +83,7 @@ $$
 a(p)=\frac{\sum_i\lambda_i a_i/w_i}{\sum_i\lambda_i/w_i}.
 $$
 
-在线段上取屏幕权重 $(1/2,1/2)$、属性 $(0,1)$、$w=(1,2)$，得到 $a=(1/4)/(3/4)=1/3$，而不是直接平均的 $1/2$。[08 的 `perspectiveInterpolate(weights, attributes, inv_w)`][08-core] 接收的是 $1/w$；标量属性也用 `(顶点数, 1)` 数组。
+在线段上取屏幕权重 $(1/2,1/2)$、属性 $(0,1)$、$w=(1,2)$，得到 $a=(1/4)/(3/4)=1/3$，而不是直接平均的 $1/2$。[08 的 `perspectiveInterpolate(weights, attributes, inverseW)`][08-core] 接收的是 $1/w$；标量属性也用 `(顶点数, 1)` 数组。
 
 **深度是需要另外认清的量。** 已经除过 $w$ 的 $z_{\rm ndc}$ 直接按屏幕权重线性插值，不能再套一次上式。对 near $=1$、far $=10$、正相机轴向距离 $d=2$：
 

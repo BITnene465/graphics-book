@@ -1,5 +1,7 @@
 # Web 版迁移验收
 
+本页保留初次迁移时的范围与计数。基础篇完成版 v2.1.0 的当前范围见 [全书规划](book-plan.md)，最新检查见 [验收记录](verification.md)。
+
 本次迁移已完成：教学算法、交互和静态构建全部使用 TypeScript / Web，环境由 npm 管理。当前树没有 Python、Pyodide、uv、Panel 或后端 API。
 
 旧版保存在本地标签 `archive/python-edition-20261101`（`d12e79b9467b88b8d43c02c2132beae8e01e2336`），GitHub 上保留原 `main` 历史。新版位于 `web-edition`，从新的根提交开始；旧版归档不进入新版构建与发布。2026-11-02 已将 `web-edition` 上传并设为公开仓库的默认分支，启用 GitHub Pages；原有分支历史保持完整。

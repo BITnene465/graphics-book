@@ -1,4 +1,5 @@
 import { cullingFigure } from './culling-figure.ts';
+import { occlusionFigures } from './occlusion-figures.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { plot, bitmap } from '../../figures/helpers.ts';
 import { slider, choice, number } from '../../figures/spec.ts';
@@ -117,4 +118,5 @@ export const figures: FigureSpec[] = [
     },
   },
   cullingFigure,
+  ...occlusionFigures,
 ];

@@ -1,4 +1,5 @@
 import { Drawing, palette } from '../../figures/drawing.ts';
+import { cylindricalFigure } from './cylindrical-figure.ts';
 import { bitmap, rectangle, rgb, axes3 } from '../../figures/helpers.ts';
 import { slider, choice, number, vec2 } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
@@ -25,6 +26,7 @@ const demoTexture = checkerTexture(32, 8),
   mips = buildMipmaps(demoTexture),
   rips = buildRipmap(demoTexture);
 export const figures: FigureSpec[] = [
+  cylindricalFigure,
   {
     id: 'perspective-uv',
     chapter: '08',

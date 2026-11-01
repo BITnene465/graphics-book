@@ -21,7 +21,7 @@ test('每章稳定链接解析回同一章', () => {
   }
 });
 test('旧数字书签保留原主题，而非误跳到新章号', () => {
-  assert.equal(resolveChapter('07').title, '纹理与透视插值');
+  assert.equal(chapterKey(resolveChapter('07')), 'textures');
   assert.equal(resolveChapter('07').id, '08');
   assert.equal(resolveChapter('08').id, '05');
   assert.equal(resolveChapter('12').id, '15');

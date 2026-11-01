@@ -4,7 +4,7 @@
 
 **[在线阅读](https://bitnene465.github.io/graphics-book/)** · [GitHub 源码](https://github.com/BITnene465/graphics-book)
 
-当前 Web 版包含 **15 章、73 个聚焦演示、15 个综合演示、35 道编程练习**，另有综合渲染实践、数学补充和术语索引。面向会编程、接触过少量线性代数的读者。两批基础补写已接入增量光栅化、四元数、消失点、视域剔除、半边、CSG、八叉树、插值与拟合、样条求值及曲线曲面曲率。几何篇按“表示与组织 → 构造与度量 → 曲面与拼接”连续展开。后续按 [全书规划](docs/book-plan.md)分批扩展；完整覆盖课程与 GAMES101 仍有 [待办](docs/TODO.md)。
+**v2.1.0 · 基础篇完成版**，包含 **15 章、79 个聚焦演示、15 个综合演示、35 道编程练习**，另有综合渲染实践、数学补充和术语索引。面向会编程、接触过少量线性代数的读者。从像素、空间与光栅管线走到几何、曲线曲面和基础光追；CSG、八叉树、插值拟合、曲率、B-spline/NURBS 与并行成本模型嵌入相应问题链。完成范围与终止条件见 [全书规划](docs/book-plan.md)；完整课程与 GAMES101 的剩余内容保留为 [后续计划](docs/TODO.md)。
 
 ## 本地阅读
 
@@ -77,6 +77,8 @@ npm run render -- --size 384 --samples 2
 npm run build
 npm run preview -- --port 5018
 ```
+
+固定版本与可直接部署的静态包见 [v2.1.0 Release](https://github.com/BITnene465/graphics-book/releases/tag/v2.1.0)。可用 `git checkout v2.1.0` 还原该版源码；在线站点随后续发布更新，标签与发布包用于保存完成版。
 
 将 `dist/` 上传到任意静态站点即可，不需要运行时计算服务。用 HTTP 访问构建结果，不要直接双击 `index.html`。路由使用 `?chapter=camera` 等查询参数，因此不需要服务端路由重写。
 
