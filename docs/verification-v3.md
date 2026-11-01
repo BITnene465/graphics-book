@@ -43,4 +43,16 @@
 
 ## 发布
 
-本地验收完成后发布到既有公开仓库与 GitHub Pages，保留 v2.1.0。云端与公网结果在发布完成后补录。
+教材与算法提交为 `eed50563ff85a1f55bf6673935acb4770d0aaad4`；其后的验收补录只修改文档。Node.js 24 的 [Check](https://github.com/BITnene465/graphics-book/actions/runs/41357034389) 与 [Deploy book](https://github.com/BITnene465/graphics-book/actions/runs/41357034405) 均成功。
+
+在[公开站点](https://bitnene465.github.io/graphics-book/)完成以下复验：
+
+- 桌面逐章加载 39 章并激活 146 个演示，无页面异常、HTTP 资源错误、公式错误或整页横向溢出；当前目录分组正确展开。
+- 390×844 逐章展开 24 个进阶章的自查提示，确认最新核对算例均已上线，无公式错误或整页横向溢出。
+- 第 26 章进度移到首个样本时，数值栏显示“至少需要两个样本”；数学附录包含十节，链接与排版正常。这同时确认公网已加载内容补强后的构建。
+
+固定版本为 [v3.0.0](https://github.com/BITnene465/graphics-book/releases/tag/v3.0.0)，保留 v2.1.0。静态包 `graphics-book-v3.0.0-site.zip` 约 2.0 MB，压缩数据完整性检查通过。SHA-256：
+
+```text
+76861f09ba11c6086eadb944156ff4eb2d277e2c1ff7d3a7995e3d0035611edb
+```
