@@ -50,7 +50,7 @@ export const figures: FigureSpec[] = [
     id: 'diffuse-path-image',
     chapter: '26',
     title: '从桌面取出小球，单独研究随机光路',
-    subtitle: '保留主场景的球、地面与相机；暂用均匀材质和环境光隔离路径采样。',
+    subtitle: '保留桌面场景的球、地面与相机；暂用均匀材质和环境光隔离路径采样。',
     source: '/src/chapters/26-path-tracing/core.ts',
     animated: true,
     duration: 10,
@@ -107,7 +107,7 @@ export const figures: FigureSpec[] = [
         反射上限: number(p, 'bounces'),
         输出像素: '96 × 64',
         光源: '无限远环境',
-        模型: '主场景的球与桌面子集；Lambert 常量反射率；无台灯直射项',
+        模型: '桌面场景的球与桌面子集；Lambert 常量反射率；无台灯直射项',
       };
       return d.result();
     },

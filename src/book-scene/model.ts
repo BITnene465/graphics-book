@@ -53,7 +53,7 @@ const part = (
   editable: key === 'ball',
 });
 
-/** 全书只在这里定义主场景；函数每次返回独立数组。长度单位为米。 */
+/** 全书只在这里定义桌面场景；函数每次返回独立数组。长度单位为米。 */
 export function deskState(options: Partial<DeskParameters> = {}): StudyState {
   const angles = options.angles ?? DESK.angles,
     joints = lampJoints(angles),

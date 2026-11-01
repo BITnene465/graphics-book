@@ -44,7 +44,7 @@ export const matting: FigureSpec = {
         3 * i,
       );
     }
-    imagePanel(d, '主场景的观测图像', m.width, m.height, m.color);
+    imagePanel(d, '桌面场景的观测图像', m.width, m.height, m.color);
     imagePanel(d, '几何提供的覆盖 alpha', m.width, m.height, a);
     imagePanel(d, '线性颜色合成', m.width, m.height, out);
     d.values = {
@@ -159,7 +159,7 @@ export const sensor: FigureSpec = {
   id: 'desk-sensor',
   chapter: '33',
   title: '同一幅图像怎样成为传感器读数',
-  subtitle: '主场景的线性 RGB 经过 RGGB 采样、光子与读出噪声，再重建三个通道。',
+  subtitle: '桌面场景的线性 RGB 经过 RGGB 采样、光子与读出噪声，再重建三个通道。',
   source: '/src/book-scene/imaging.ts',
   animated: false,
   defaults: { photons: 300, read: 3, seed: 7 },

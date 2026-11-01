@@ -175,7 +175,7 @@ export const stereo: FigureSpec = {
   id: 'desk-reconstruction',
   chapter: '21',
   title: '由两幅观测找回小球的位置',
-  subtitle: '球的位置来自主场景；改变基线和像面误差，核对三角测量的重建偏差。',
+  subtitle: '球的位置来自桌面场景；改变基线和像面误差，核对三角测量的重建偏差。',
   source: '/src/book-scene/geometry-studies.ts',
   animated: false,
   defaults: { baseline: 1.2, error: 0, object: 'ball' },
