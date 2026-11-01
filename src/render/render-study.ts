@@ -204,6 +204,11 @@ export function renderStudy(
     perspectiveCorrect: params.correct !== false,
     depthBits: Number(params.bits) > 0 ? Number(params.bits) : null,
     fragment: (f) => {
+      // Orthographic rays are parallel; their view direction is independent of the surface point.
+      const towardsViewer = sub(
+        eye,
+        camera.projection === 'orthographic' ? camera.target : f.world,
+      ) as Vec3;
       if (chapter === '06') return f.color;
       if (chapter === '08' && tex && mips) {
         if (params.filter === 'nearest' || params.filter === 'bilinear')
@@ -242,12 +247,17 @@ export function renderStudy(
         return f.color.map((c) => c * checker * (0.16 + 0.84 * diffuse * q.visibility)) as Vec3;
       }
       if (chapter === '09') {
-        return environment(reflect(unit(sub(f.world, eye) as Vec3), f.normal));
+        return environment(reflect(scale(unit(towardsViewer), -1) as Vec3, f.normal));
       }
       if (chapter === '11')
-        return fragmentStage(f, eye, light, params.mode as 'lit' | 'checker' | 'uv' | 'normal');
+        return fragmentStage(
+          f,
+          camera.projection === 'orthographic' ? (add(f.world, towardsViewer) as Vec3) : eye,
+          light,
+          params.mode as 'lit' | 'checker' | 'uv' | 'normal',
+        );
       const l = lightAt(f.world, light, true, 40);
-      return shade(f.normal, l.direction, sub(eye, f.world) as Vec3, {
+      return shade(f.normal, l.direction, towardsViewer, {
         kd: f.color,
         ks: Number(params.ks ?? 0.3),
         exponent: Number(params.exponent ?? 48),

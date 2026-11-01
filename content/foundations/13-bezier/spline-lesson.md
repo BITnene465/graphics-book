@@ -92,6 +92,8 @@ $$
 
 这是 Cox–de Boor 递推。遇到重复结点造成零分母时，**对应整项记为零**；不能直接计算 $0/0$。它的支撑区间来自下面两项支撑的并集，逐层扩大到 $[u_i,u_{i+p+1}]$，区间外一定为零。端点是否取零还需结合结点重数与求值约定，不能单靠闭区间记号判断。
 
+本书始终用 $p$ 表示次数（degree）；阶数（order）为 $p+1$。例如三次 B-spline 是四阶，基函数跨越至多四个非零长度的结点区间。对照其他资料时，应先确认符号表示次数还是阶数，再比较递推下标与结点数量。
+
 有了权重，曲线仍然是一组点的加权和：
 
 $$
@@ -99,7 +101,7 @@ C(u)=\sum_{i=0}^{n}N_{i,p}(u)P_i,
 \qquad m=n+p+1.
 $$
 
-在有效参数域 $[u_p,u_{n+1}]$ 内，这些基函数非负且总和为 1。结点把参数轴分段，每段仍是次数至多为 $p$ 的多项式；整个曲线一般不是一个全局多项式。[Michigan Tech 的基函数定义](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/bspline-basis.html)给出了递推的逐层构造；[性质页](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/bspline-property.html)说明了局部支撑、单位分解及结点重数对连续性的影响。
+在有效参数域 $[u_p,u_{n+1}]$ 内，这些基函数非负且总和为 1。结点把参数轴分段，每段仍是次数至多为 $p$ 的多项式；整个曲线一般不是一个全局多项式。[Michigan Tech 的基函数定义](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/B-spline/bspline-basis.html)给出了递推的逐层构造；[性质页](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/B-spline/bspline-property.html)说明了局部支撑、单位分解及结点重数对连续性的影响。
 
 下面固定次数 $p=3$、七个控制点，使用结点向量
 

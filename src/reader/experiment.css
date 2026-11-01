@@ -1,0 +1,309 @@
+/* Shared interaction surface; the surrounding textbook remains a reading page. */
+.figure-study,
+.scene-study,
+.camera-study {
+  --exp-bg: #151e2b;
+  --exp-panel: #192332;
+  --exp-stage: #111824;
+  --exp-line: #2a374a;
+  --exp-muted: #9aadc3;
+  --exp-text: #e6edf6;
+  color: var(--exp-text);
+  color-scheme: dark;
+  isolation: isolate;
+}
+.tool-icon {
+  width: 17px;
+  height: 17px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.number-field {
+  appearance: textfield;
+  min-width: 0;
+  width: 65px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #101925;
+  color: var(--exp-text);
+  font: 11px/1.4 var(--mono, monospace);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.number-field::-webkit-inner-spin-button,
+.number-field::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.number-field:hover {
+  border-color: #4b6079;
+}
+.number-field:not([readonly]) {
+  border-color: #58c4dd;
+  cursor: text;
+  background: #0c131e;
+}
+.number-field:focus-visible {
+  outline: 2px solid #58c4dd;
+  outline-offset: 2px;
+}
+.figure-study button:focus-visible,
+.scene-study button:focus-visible {
+  outline: 2px solid #58c4dd;
+  outline-offset: 2px;
+}
+.figure-study button:disabled,
+.scene-study button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.figure-control label {
+  align-items: center;
+}
+.figure-stage {
+  grid-column: 1;
+  grid-row: 1;
+}
+.figure-stage svg {
+  cursor: grab;
+  outline: none;
+}
+.figure-stage svg:focus-visible {
+  box-shadow: inset 0 0 0 2px #58c4dd90;
+}
+.figure-stage svg.is-dragging,
+.figure-stage svg.is-dragging .figure-handle {
+  cursor: grabbing;
+}
+.figure-handle circle:last-of-type {
+  transition:
+    r 0.12s,
+    stroke-width 0.12s;
+}
+.figure-handle text {
+  opacity: 0;
+}
+.figure-handle:hover text,
+.figure-handle:focus-visible text,
+.figure-handle.selected text {
+  opacity: 1;
+}
+.figure-handle:hover circle:last-of-type,
+.figure-handle.selected circle:last-of-type {
+  r: var(--handle-radius);
+  stroke-width: var(--handle-stroke);
+}
+.figure-viewport-bar {
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 38px;
+  padding: 4px 16px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-top: 1px solid var(--exp-line);
+  background: var(--exp-bg);
+  color: var(--exp-muted);
+  font: 11px var(--sans);
+}
+.figure-selection {
+  margin-right: auto;
+}
+.figure-coordinates {
+  display: flex;
+  gap: 5px;
+  margin-right: 12px;
+}
+.figure-coordinates[hidden] {
+  display: none;
+}
+.camera-study .token.comment {
+  color: #91a1b7;
+}
+.camera-study .token.keyword {
+  color: #c4a0ed;
+}
+.camera-study .token.string {
+  color: #a1cf84;
+}
+.camera-study .token.function {
+  color: #58c4dd;
+}
+.camera-study .token.number,
+.camera-study .token.boolean {
+  color: #f4d66a;
+}
+.camera-study .token.operator,
+.camera-study .token.punctuation {
+  color: #b7c7da;
+}
+.figure-study.is-dragging .figure-stage svg {
+  cursor: grabbing;
+}
+.figure-viewport-bar button {
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  min-width: 30px;
+  height: 28px;
+  cursor: pointer;
+  font: inherit;
+}
+.figure-viewport-bar button:hover {
+  background: #26374c;
+  color: var(--exp-text);
+}
+.figure-study .figure-control input::-webkit-slider-thumb,
+.figure-study .figure-timeline input::-webkit-slider-thumb,
+.scene-study .figure-control input::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px #58c4dd18;
+}
+.scene-tools-bar .scene-tools button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.scene-tools-bar kbd {
+  color: #8293a9;
+  font: 9px var(--mono);
+  margin-left: 3px;
+}
+.scene-inspector-tabs {
+  display: flex;
+  gap: 3px;
+  margin: -5px 0 20px;
+  border-bottom: 1px solid var(--exp-line);
+  padding-bottom: 10px;
+}
+.scene-inspector-tabs button {
+  flex: 1;
+  padding: 7px 5px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--exp-muted);
+  font: 11px var(--sans);
+  cursor: pointer;
+}
+.scene-inspector-tabs button[aria-pressed='true'] {
+  background: #2a4055;
+  color: var(--exp-text);
+}
+.scene-inspector[data-tab='parameters'] > .scene-object-tree,
+.scene-inspector[data-tab='parameters'] > .scene-transform,
+.scene-inspector[data-tab='objects'] > .scene-controls,
+.scene-inspector[data-tab='objects'] > .scene-advanced {
+  display: none;
+}
+.scene-inspector .scene-object-tree {
+  margin: 0;
+  padding-top: 0;
+  border: 0;
+}
+.scene-transform {
+  border-top: 1px solid var(--exp-line);
+  margin-top: 18px;
+  padding-top: 14px;
+}
+.scene-transform[hidden] {
+  display: none;
+}
+.prose .scene-transform-name {
+  margin: 0 0 15px;
+  color: var(--exp-text);
+  font: 500 12px var(--sans);
+}
+.scene-transform-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 12px;
+}
+.scene-transform-row > span {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: var(--exp-muted);
+  padding-bottom: 2px;
+}
+.scene-transform-row label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font: 10px var(--mono);
+}
+.scene-transform-row label:nth-of-type(1) {
+  color: #58c4dd;
+}
+.scene-transform-row label:nth-of-type(2) {
+  color: #83c167;
+}
+.scene-transform-row label:nth-of-type(3) {
+  color: #fc6255;
+}
+.scene-transform-row .number-field {
+  width: 100%;
+  padding: 4px 3px;
+}
+.scene-compass {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  right: 4px;
+  width: 100px;
+  height: 100px;
+  overflow: visible;
+}
+.scene-compass [data-axis] {
+  cursor: pointer;
+  outline: none;
+}
+.scene-compass [data-axis]:hover circle,
+.scene-compass [data-axis]:focus-visible circle {
+  stroke: white;
+  stroke-width: 2px;
+}
+.scene-compass text {
+  font: 600 10px var(--mono);
+  fill: #111824;
+  pointer-events: none;
+}
+.compass-center {
+  fill: #1e2d41;
+  stroke: #35485e;
+}
+.scene-editor {
+  cursor: grab;
+}
+.scene-editor.is-dragging {
+  cursor: grabbing;
+}
+.scene-controls .figure-control,
+.scene-more-controls .figure-control {
+  min-width: 0;
+}
+@media (max-width: 850px) {
+  .scene-inspector-tabs {
+    grid-column: 1 / -1;
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+  .scene-transform {
+    max-width: 400px;
+  }
+}
+@media (max-width: 700px) {
+  .scene-tools-bar kbd {
+    display: none;
+  }
+  .scene-compass {
+    width: 84px;
+    height: 84px;
+  }
+  .scene-tools-bar .scene-tools button {
+    padding: 5px;
+  }
+}

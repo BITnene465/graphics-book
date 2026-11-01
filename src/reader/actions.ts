@@ -1,6 +1,12 @@
+import { icon } from './icons.ts';
+
 /** 窄屏把次要动作收进菜单；保留原按钮和事件，桌面仍直接显示。 */
 export function compactActions(host: HTMLElement, signal: AbortSignal): void {
   const actions = host.querySelector<HTMLElement>('.figure-actions')!;
+  for (const button of actions.querySelectorAll<HTMLButtonElement>('button')) {
+    button.innerHTML = icon(button.dataset.action!);
+    button.setAttribute('aria-label', button.getAttribute('aria-label') || button.title);
+  }
   const extra = document.createElement('div');
   extra.className = 'figure-extra-actions';
   for (const button of [...actions.querySelectorAll('button')].slice(1)) {

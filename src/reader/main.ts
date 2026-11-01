@@ -1,5 +1,6 @@
 import 'katex/dist/katex.min.css';
 import './reader.css';
+import './experiment.css';
 import './camera-study.css';
 import './figure-view.css';
 import './scene-view.css';

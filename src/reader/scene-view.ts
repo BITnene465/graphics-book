@@ -8,6 +8,11 @@ import type { Vec3 } from '../math/vector.ts';
 import { StudyRenderer } from './render-client.ts';
 import type { RenderQuality } from './render-client.ts';
 import { compactActions } from './actions.ts';
+import { EditHistory } from './history.ts';
+import { numberField } from './number-field.ts';
+import { makeGuides, ViewCompass } from './scene-guides.ts';
+import { stageColor } from './visual-style.ts';
+import { icon } from './icons.ts';
 
 type SceneDisplay = 'image' | 'space' | 'split';
 export type SceneSnapshot = {
@@ -16,6 +21,7 @@ export type SceneSnapshot = {
   view: SceneDisplay;
   selected: string;
   probe?: [number, number];
+  wire?: boolean;
 };
 
 const format = (value: number): string =>
@@ -55,7 +61,12 @@ export class SceneView {
   private disposed = false;
   private restoring = false;
   private mode: 'translate' | 'rotate' | 'scale' = 'translate';
-  private undo: StudyState[] = [];
+  private history = new EditHistory<SceneSnapshot>();
+  private guides: THREE.Group;
+  private compass: ViewCompass;
+  private selectionBox = new THREE.BoxHelper(new THREE.Object3D(), '#f4d66a');
+  private cameraMotion = 0;
+  private snap = false;
   private probePixel?: [number, number];
   private channel = 'color';
   private wire = false;
@@ -71,9 +82,11 @@ export class SceneView {
     this.spec = customSpec ?? studySpec(chapter);
     this.state = structuredClone(saved?.state ?? this.spec.state);
     this.channel = saved?.channel ?? 'color';
-    this.display = saved?.view ?? (chapter === '14' ? 'space' : 'image');
+    this.display =
+      saved?.view ?? (chapter === '14' ? 'space' : innerWidth >= 1200 ? 'split' : 'image');
     this.selected = saved?.selected ?? '';
     this.probePixel = saved?.probe;
+    this.wire = saved?.wire ?? false;
     host.className = 'scene-study';
     host.innerHTML = `
       <header class="figure-heading"><div><span class="figure-kicker">${chapter} / 综合实验</span><h3>${this.spec.title}</h3></div>
@@ -123,58 +136,60 @@ export class SceneView {
       },
     );
     const editor = host.querySelector('.scene-editor') as HTMLElement;
+    const redo = document.createElement('button');
+    redo.dataset.action = 'redo';
+    redo.title = '重做';
+    host.querySelector('[data-action="undo"]')!.after(redo);
     compactActions(host, this.abort.signal);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    this.renderer.setClearColor('#f0efe6');
+    this.renderer.setClearColor(stageColor);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     editor.append(this.renderer.domElement);
-    this.scene.add(new THREE.HemisphereLight('#ffffff', '#657261', 1.5));
+    this.scene.add(new THREE.HemisphereLight('#dbeaff', '#30364e', 2.1));
     this.light = new THREE.PointLight('#ffffff', 70, 0, 2);
     this.light.position.set(-3, 4, 5);
+    this.light.castShadow = true;
+    this.light.shadow.mapSize.set(1024, 1024);
+    this.light.shadow.camera.near = 0.1;
+    this.light.shadow.camera.far = 60;
+    this.light.shadow.bias = -0.0002;
     this.scene.add(this.light);
-    const grid = new THREE.GridHelper(10, 20, '#a7b5a7', '#d4dbcd');
-    grid.position.y = chapter === '10' || chapter === '15' ? -0.002 : -1.5;
-    this.scene.add(grid);
+    this.guides = makeGuides(chapter === '10' || chapter === '15' ? -0.002 : -1.5);
+    this.scene.add(this.guides, this.selectionBox);
+    this.selectionBox.visible = false;
+    this.selectionBox.material.depthTest = false;
+    this.selectionBox.material.transparent = true;
+    this.selectionBox.material.opacity = 0.7;
+    this.compass = new ViewCompass(
+      editor,
+      (direction) => this.alignView(direction),
+      this.abort.signal,
+    );
     this.camera = this.perspective;
     this.orbit = new OrbitControls(this.camera, this.renderer.domElement);
     this.orbit.enableDamping = false;
+    this.orbit.rotateSpeed = 0.65;
+    this.orbit.zoomSpeed = 0.8;
+    this.orbit.panSpeed = 0.8;
     this.orbit.minDistance = 0.3;
     this.orbit.maxDistance = 80;
     this.gizmo = new TransformControls(this.camera, this.renderer.domElement);
-    this.gizmo.setSize(0.75);
+    this.gizmo.setSize(0.9);
+    this.gizmo.setColors('#58c4dd', '#83c167', '#fc6255', '#f4d66a');
     this.scene.add(this.gizmo.getHelper());
     this.gizmo.addEventListener('dragging-changed', (event) => {
       this.orbit.enabled = !event.value;
     });
     this.gizmo.addEventListener('mouseDown', () => this.remember());
     this.gizmo.addEventListener('objectChange', () => {
-      const object = this.state.objects.find((o) => o.key === this.selected),
-        mesh = this.meshes.get(this.selected);
-      if (!object || !mesh) return;
-      if (object.kind === 'light') mesh.position.y = Math.max(0.2, mesh.position.y);
-      if (chapter === '15' && object.kind === 'sphere') {
-        const s = Math.max(0.1, (mesh.scale.x + mesh.scale.y + mesh.scale.z) / 3);
-        mesh.scale.setScalar(s);
-      }
-      mesh.scale.set(
-        Math.max(0.03, mesh.scale.x),
-        Math.max(0.03, mesh.scale.y),
-        Math.max(0.03, mesh.scale.z),
-      );
-      object.position = mesh.position.toArray() as Vec3;
-      object.rotation = [mesh.rotation.x, mesh.rotation.y, mesh.rotation.z].map(
-        (x) => (x * 180) / Math.PI,
-      ) as Vec3;
-      object.scale = mesh.scale.toArray() as Vec3;
-      if (object.kind === 'control') this.updatePatch();
-      this.updateLight();
-      this.syncSelection();
-      this.scheduleRender();
-      this.paint();
+      this.acceptTransform();
     });
     this.gizmo.addEventListener('change', () => this.paint());
     this.orbit.addEventListener('start', () => {
+      cancelAnimationFrame(this.cameraMotion);
       if (!this.restoring) this.remember();
     });
     this.orbit.addEventListener('change', () => {
@@ -201,6 +216,7 @@ export class SceneView {
       this.scheduleRender();
     });
     on('[data-action="undo"]', () => this.restoreUndo());
+    on('[data-action="redo"]', () => this.restoreUndo(true));
     on('[data-action="parameters"]', () => {
       const hidden = host.classList.toggle('parameters-hidden');
       host
@@ -289,57 +305,52 @@ export class SceneView {
       },
       { signal },
     );
-    let start: [number, number] = [0, 0];
-    this.renderer.domElement.addEventListener(
-      'pointerdown',
-      (e) => {
-        editor.focus({ preventScroll: true });
-        start = [e.clientX, e.clientY];
-      },
-      { signal },
-    );
-    this.renderer.domElement.addEventListener(
-      'pointerup',
-      (e) => {
-        if (this.gizmo.axis || Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 4) return;
-        const rect = this.renderer.domElement.getBoundingClientRect(),
-          pointer = new THREE.Vector2(
-            (2 * (e.clientX - rect.left)) / rect.width - 1,
-            1 - (2 * (e.clientY - rect.top)) / rect.height,
-          ),
-          ray = new THREE.Raycaster();
-        ray.setFromCamera(pointer, this.camera);
-        const hit = ray.intersectObjects(
-          [...this.meshes.values()].filter((m) => m.userData.editable),
-          false,
-        )[0];
-        if (hit) this.select(hit.object.userData.key);
-        else this.select('');
-      },
-      { signal },
-    );
+    this.bindDirectDrag(editor);
     for (const surface of [this.result, this.renderer.domElement]) {
       surface.addEventListener('pointerenter', () => this.connectCamera(surface), { signal });
+      surface.addEventListener(
+        'wheel',
+        (event) => {
+          if (
+            !event.ctrlKey &&
+            document.activeElement !== surface &&
+            document.activeElement !== editor
+          )
+            event.stopImmediatePropagation();
+        },
+        { signal, capture: true },
+      );
     }
     host.addEventListener(
       'keydown',
       (event) => {
-        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement)
-          return;
+        if (event.target instanceof HTMLInputElement) return;
         if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') {
           event.preventDefault();
-          this.restoreUndo();
+          this.restoreUndo(event.shiftKey);
           return;
         }
+        if (event.target instanceof HTMLButtonElement) return;
         if (event.key.toLowerCase() === 'g') this.setTool('translate');
         if (event.key.toLowerCase() === 'r') this.setTool('rotate');
         if (event.key.toLowerCase() === 's') this.setTool('scale');
         if (event.key.toLowerCase() === 'f') this.focus();
-        if (event.key === 'Escape') this.select('');
+        if (event.key === 'Home') {
+          event.preventDefault();
+          this.focus(true);
+        }
+        if (event.key === 'Escape') {
+          this.select('');
+          (document.activeElement as HTMLElement)?.blur();
+        }
+        if (event.key === '1') this.alignView([0, 0, 1]);
+        if (event.key === '3') this.alignView([1, 0, 0]);
+        if (event.key === '7') this.alignView([0, 1, 0]);
       },
       { signal },
     );
     this.buildControls();
+    this.buildInspector();
     this.rebuild();
     this.restoreCamera();
     this.sync();
@@ -379,15 +390,27 @@ export class SceneView {
     this.paint();
   }
   private remember(): void {
-    this.undo.push(structuredClone(this.state));
-    if (this.undo.length > 30) this.undo.shift();
+    this.history.remember(this.snapshot());
+    this.syncHistory();
   }
-  private restoreUndo(): void {
-    const state = this.undo.pop();
-    if (!state) return;
-    this.state = state;
+  private syncHistory(): void {
+    this.host.querySelector<HTMLButtonElement>('[data-action="undo"]')!.disabled =
+      !this.history.canUndo;
+    this.host.querySelector<HTMLButtonElement>('[data-action="redo"]')!.disabled =
+      !this.history.canRedo;
+  }
+  private restoreUndo(redo = false): void {
+    const saved = redo ? this.history.redo(this.snapshot()) : this.history.undo(this.snapshot());
+    if (!saved) return;
+    cancelAnimationFrame(this.cameraMotion);
+    this.state = saved.state;
+    this.selected = saved.selected;
+    this.channel = saved.channel;
+    this.probePixel = saved.probe;
+    this.wire = saved.wire ?? false;
     this.rebuild();
     this.restoreCamera();
+    this.setView(saved.view);
     this.sync();
     this.scheduleRender();
   }
@@ -435,7 +458,23 @@ export class SceneView {
         }
         group.append(row);
       } else {
-        const output = document.createElement('output');
+        const output = numberField(
+          control.label,
+          control.min,
+          control.max,
+          control.step ?? 1,
+          () => this.remember(),
+          (value) => {
+            if (control.key === 'fov') {
+              this.state.camera.fov = value;
+              this.restoreCamera();
+            } else this.state.params[control.key] = value;
+            if (geometryKeys.has(control.key)) this.updateGeometry();
+            this.sync();
+            this.scheduleRender();
+          },
+          this.abort.signal,
+        );
         output.dataset.readout = control.key;
         label.append(output);
         const input = document.createElement('input');
@@ -479,6 +518,360 @@ export class SceneView {
         .append(group);
     }
   }
+  private setInspector(tab: 'parameters' | 'objects'): void {
+    this.controls.dataset.tab = tab;
+    this.controls
+      .querySelectorAll<HTMLButtonElement>('[data-inspector]')
+      .forEach((button) =>
+        button.setAttribute('aria-pressed', String(button.dataset.inspector === tab)),
+      );
+  }
+  private buildInspector(): void {
+    const signal = this.abort.signal;
+    const tabs = document.createElement('div');
+    tabs.className = 'scene-inspector-tabs';
+    tabs.innerHTML =
+      '<button data-inspector="parameters">实验参数</button><button data-inspector="objects">物体</button>';
+    tabs
+      .querySelectorAll<HTMLButtonElement>('button')
+      .forEach((button) =>
+        button.addEventListener(
+          'click',
+          () => this.setInspector(button.dataset.inspector as 'parameters' | 'objects'),
+          { signal },
+        ),
+      );
+    this.controls.prepend(tabs);
+    const fields = document.createElement('section');
+    fields.className = 'scene-transform';
+    fields.hidden = true;
+    fields.innerHTML = '<h4 class="scene-transform-name"></h4>';
+    for (const property of ['position', 'rotation', 'scale'] as const) {
+      const row = document.createElement('div');
+      row.className = 'scene-transform-row';
+      const name = document.createElement('span');
+      name.textContent = { position: '位置', rotation: '旋转 / °', scale: '缩放' }[property];
+      row.append(name);
+      for (let axis = 0; axis < 3; axis++) {
+        const label = document.createElement('label');
+        label.dataset.axis = String(axis);
+        const axisName = document.createElement('span');
+        axisName.textContent = 'XYZ'[axis];
+        const input = numberField(
+          name.textContent + ' ' + 'XYZ'[axis],
+          property === 'scale' ? 0.03 : -1000,
+          property === 'scale' ? 30 : 1000,
+          property === 'rotation' ? 1 : 0.01,
+          () => this.remember(),
+          (value) => {
+            const mesh = this.meshes.get(this.selected);
+            if (!mesh) return;
+            if (property === 'rotation')
+              mesh.rotation.set(
+                ...([mesh.rotation.x, mesh.rotation.y, mesh.rotation.z].map((n, i) =>
+                  i === axis ? (value * Math.PI) / 180 : n,
+                ) as Vec3),
+              );
+            else mesh[property].setComponent(axis, value);
+            this.acceptTransform(property === 'scale' ? axis : undefined);
+          },
+          signal,
+        );
+        input.dataset.transform = property;
+        input.dataset.axis = String(axis);
+        label.append(axisName, input);
+        row.append(label);
+      }
+      fields.append(row);
+    }
+    this.controls.querySelector('.scene-object-tree')!.after(fields);
+    this.setInspector('parameters');
+    this.host.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach((button) => {
+      const mode = button.dataset.tool!;
+      button.innerHTML =
+        icon(mode === 'translate' ? 'move' : mode) +
+        '<span>' +
+        button.textContent +
+        '</span><kbd>' +
+        { translate: 'G', rotate: 'R', scale: 'S' }[mode as 'translate'] +
+        '</kbd>';
+    });
+    const bar = this.host.querySelector('.scene-tools-bar')!;
+    const space = document.createElement('button');
+    space.textContent = '世界';
+    space.title = '切换世界 / 局部变换轴';
+    space.dataset.action = 'space';
+    space.addEventListener(
+      'click',
+      () => {
+        const next = this.gizmo.space === 'world' ? 'local' : 'world';
+        this.gizmo.setSpace(next);
+        space.textContent = next === 'world' ? '世界' : '局部';
+        this.paint();
+      },
+      { signal },
+    );
+    const snap = document.createElement('button');
+    snap.textContent = '吸附';
+    snap.title = '移动 0.25 · 旋转 15° · 缩放 0.1';
+    snap.dataset.action = 'snap';
+    snap.setAttribute('aria-pressed', 'false');
+    snap.addEventListener(
+      'click',
+      () => {
+        this.snap = !this.snap;
+        snap.setAttribute('aria-pressed', String(this.snap));
+        this.gizmo.setTranslationSnap(this.snap ? 0.25 : null);
+        this.gizmo.setRotationSnap(this.snap ? Math.PI / 12 : null);
+        this.gizmo.setScaleSnap(this.snap ? 0.1 : null);
+      },
+      { signal },
+    );
+    const guides = document.createElement('button');
+    guides.textContent = '坐标';
+    guides.dataset.action = 'guides';
+    guides.setAttribute('aria-pressed', 'true');
+    guides.addEventListener(
+      'click',
+      () => {
+        this.guides.visible = !this.guides.visible;
+        guides.setAttribute('aria-pressed', String(this.guides.visible));
+        this.paint();
+      },
+      { signal },
+    );
+    this.host.querySelector('[data-action="wire"]')!.textContent = '线框';
+    bar.querySelector('.scene-tools')!.after(space, snap, guides);
+    this.host.querySelector('.scene-shortcuts p')!.textContent =
+      '拖动物体在观察平面内移动；拖动空白区域或 Alt 拖动环绕。右键平移，点击画布后滚轮缩放。G / R / S 切换移动、旋转、缩放，F 聚焦，Home 查看全部；1 / 3 / 7 切换正、侧、顶视角。Ctrl / ⌘ Z 撤销，Ctrl / ⌘ Shift Z 重做。图像中的点击用于检查像素。';
+  }
+  private acceptTransform(scaleAxis?: number): void {
+    const object = this.state.objects.find((o) => o.key === this.selected),
+      mesh = this.meshes.get(this.selected);
+    if (!object || !mesh) return;
+    if (object.kind === 'light') mesh.position.y = Math.max(0.2, mesh.position.y);
+    if (this.state.chapter === '15' && object.kind === 'sphere') {
+      const axis =
+        scaleAxis ?? (this.gizmo.axis?.length === 1 ? 'XYZ'.indexOf(this.gizmo.axis) : -1);
+      mesh.scale.setScalar(
+        Math.max(
+          0.1,
+          axis >= 0
+            ? mesh.scale.getComponent(axis)
+            : (mesh.scale.x + mesh.scale.y + mesh.scale.z) / 3,
+        ),
+      );
+    }
+    mesh.scale.set(
+      Math.max(0.03, mesh.scale.x),
+      Math.max(0.03, mesh.scale.y),
+      Math.max(0.03, mesh.scale.z),
+    );
+    object.position = mesh.position.toArray() as Vec3;
+    object.rotation = [mesh.rotation.x, mesh.rotation.y, mesh.rotation.z].map(
+      (x) => (x * 180) / Math.PI,
+    ) as Vec3;
+    object.scale = mesh.scale.toArray() as Vec3;
+    if (object.kind === 'control') this.updatePatch();
+    this.updateLight();
+    this.syncSelection();
+    this.scheduleRender();
+    this.paint();
+  }
+  private bindDirectDrag(editor: HTMLElement): void {
+    const canvas = this.renderer.domElement,
+      signal = this.abort.signal;
+    const ray = new THREE.Raycaster();
+    let drag:
+      | {
+          pointer: number;
+          mesh: THREE.Mesh;
+          plane: THREE.Plane;
+          start: THREE.Vector3;
+          origin: THREE.Vector3;
+          screen: number[];
+          snapshot: SceneSnapshot;
+          moved: boolean;
+        }
+      | undefined;
+    let empty: number[] | undefined;
+    const cast = (event: PointerEvent | MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      ray.setFromCamera(
+        new THREE.Vector2(
+          (2 * (event.clientX - rect.left)) / rect.width - 1,
+          1 - (2 * (event.clientY - rect.top)) / rect.height,
+        ),
+        this.camera,
+      );
+    };
+    canvas.addEventListener(
+      'pointerdown',
+      (event) => {
+        editor.focus({ preventScroll: true });
+        empty = undefined;
+        if (event.button !== 0 || event.altKey || this.gizmo.axis) return;
+        if (event.pointerType === 'touch') {
+          empty = [event.clientX, event.clientY];
+          return; // Touch gestures remain with OrbitControls; tap selects an object.
+        }
+        cast(event);
+        const hit = ray.intersectObjects(
+          [...this.meshes.values()].filter((mesh) => mesh.userData.editable),
+          false,
+        )[0];
+        if (!hit) {
+          empty = [event.clientX, event.clientY];
+          return;
+        }
+        cancelAnimationFrame(this.cameraMotion);
+        const snapshot = this.snapshot();
+        this.select(hit.object.userData.key);
+        const mesh = hit.object as THREE.Mesh;
+        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+          this.camera.getWorldDirection(new THREE.Vector3()),
+          hit.point,
+        );
+        drag = {
+          pointer: event.pointerId,
+          mesh,
+          plane,
+          start: hit.point.clone(),
+          origin: mesh.position.clone(),
+          screen: [event.clientX, event.clientY],
+          snapshot,
+          moved: false,
+        };
+        this.orbit.enabled = false;
+        this.gizmo.enabled = false;
+        editor.classList.add('is-dragging');
+        canvas.setPointerCapture(event.pointerId);
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      },
+      { signal, capture: true },
+    );
+    canvas.addEventListener(
+      'pointermove',
+      (event) => {
+        if (!drag || drag.pointer !== event.pointerId) return;
+        event.stopImmediatePropagation();
+        if (
+          !drag.moved &&
+          Math.hypot(event.clientX - drag.screen[0], event.clientY - drag.screen[1]) < 3
+        )
+          return;
+        cast(event);
+        const point = ray.ray.intersectPlane(drag.plane, new THREE.Vector3());
+        if (!point) return;
+        if (!drag.moved) {
+          this.history.remember(drag.snapshot);
+          this.syncHistory();
+          drag.moved = true;
+        }
+        drag.mesh.position.copy(point).sub(drag.start).add(drag.origin);
+        if (this.snap || event.shiftKey)
+          for (let axis = 0; axis < 3; axis++)
+            drag.mesh.position.setComponent(
+              axis,
+              Math.round(drag.mesh.position.getComponent(axis) / 0.25) * 0.25,
+            );
+        this.acceptTransform();
+      },
+      { signal, capture: true },
+    );
+    const stop = (event: PointerEvent) => {
+      if (drag) {
+        event.stopImmediatePropagation();
+        if (event.type === 'pointercancel') {
+          drag.mesh.position.copy(drag.origin);
+          this.acceptTransform();
+        }
+        drag = undefined;
+        this.orbit.enabled = true;
+        this.gizmo.enabled = true;
+        editor.classList.remove('is-dragging');
+        if (canvas.hasPointerCapture(event.pointerId))
+          canvas.releasePointerCapture(event.pointerId);
+      } else if (empty && Math.hypot(event.clientX - empty[0], event.clientY - empty[1]) < 3) {
+        cast(event);
+        const hit = ray.intersectObjects(
+          [...this.meshes.values()].filter((mesh) => mesh.userData.editable),
+          false,
+        )[0];
+        this.select(hit?.object.userData.key ?? '');
+      }
+      empty = undefined;
+    };
+    canvas.addEventListener('pointerup', stop, { signal, capture: true });
+    canvas.addEventListener('pointercancel', stop, { signal, capture: true });
+    canvas.addEventListener('lostpointercapture', stop, { signal });
+    editor.addEventListener(
+      'keydown',
+      (event) => {
+        if (event.key !== 'Escape' || !drag) return;
+        drag.mesh.position.copy(drag.origin);
+        this.acceptTransform();
+        const pointer = drag.pointer;
+        drag = undefined;
+        this.orbit.enabled = this.gizmo.enabled = true;
+        editor.classList.remove('is-dragging');
+        if (canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
+        event.stopPropagation();
+      },
+      { signal },
+    );
+    canvas.addEventListener('dblclick', () => this.focus(), { signal });
+  }
+  private alignView(direction?: Vec3): void {
+    if (!direction) {
+      this.moveCamera(this.spec.state.camera.eye, this.spec.state.camera.target);
+      return;
+    }
+    const center = this.orbit.target.clone();
+    const distance = this.camera.position.distanceTo(center);
+    const axis = new THREE.Vector3(...direction);
+    if (Math.abs(axis.y) === 1) axis.z = 0.00001;
+    this.moveCamera(
+      axis.normalize().multiplyScalar(distance).add(center).toArray() as Vec3,
+      center.toArray() as Vec3,
+    );
+  }
+  private moveCamera(eye: Vec3, target: Vec3): void {
+    cancelAnimationFrame(this.cameraMotion);
+    this.remember();
+    const before = structuredClone(this.state.camera),
+      start = performance.now();
+    const from = new THREE.Spherical().setFromVector3(
+      new THREE.Vector3(...before.eye).sub(new THREE.Vector3(...before.target)),
+    );
+    const to = new THREE.Spherical().setFromVector3(
+      new THREE.Vector3(...eye).sub(new THREE.Vector3(...target)),
+    );
+    // Interpolate on the orbit, never through the scene when switching opposite views.
+    let angle = to.theta - from.theta;
+    angle = Math.atan2(Math.sin(angle), Math.cos(angle));
+    const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
+    const tick = (now: number) => {
+      const t = duration ? Math.min(1, (now - start) / duration) : 1,
+        eased = t * t * (3 - 2 * t);
+      this.state.camera.target = before.target.map((n, i) => n + (target[i] - n) * eased) as Vec3;
+      const offset = new THREE.Vector3().setFromSpherical(
+        new THREE.Spherical(
+          from.radius + (to.radius - from.radius) * eased,
+          from.phi + (to.phi - from.phi) * eased,
+          from.theta + angle * eased,
+        ),
+      );
+      this.state.camera.eye = offset
+        .add(new THREE.Vector3(...this.state.camera.target))
+        .toArray() as Vec3;
+      this.restoreCamera();
+      this.scheduleRender();
+      if (t < 1) this.cameraMotion = requestAnimationFrame(tick);
+    };
+    this.cameraMotion = requestAnimationFrame(tick);
+  }
   private geometry(object: ObjectState): THREE.BufferGeometry {
     const mesh = localScene(object, this.state),
       g = new THREE.BufferGeometry();
@@ -501,18 +894,24 @@ export class SceneView {
     for (const object of this.state.objects) {
       const material = new THREE.MeshStandardMaterial({
         color: new THREE.Color().setRGB(...object.color),
-        roughness: 0.38,
+        roughness: 0.48,
         metalness: 0,
         side: THREE.DoubleSide,
         wireframe: this.wire,
       });
       if (object.kind === 'light') material.emissive.setRGB(...object.color);
+      if (object.kind === 'ground') {
+        material.color.set('#26384b');
+        material.roughness = 0.9;
+      }
       const mesh = new THREE.Mesh(this.geometry(object), material);
       mesh.position.fromArray(object.position);
       mesh.rotation.order = 'ZYX';
       mesh.rotation.set(...(object.rotation.map((x) => (x * Math.PI) / 180) as Vec3));
       mesh.scale.fromArray(object.scale);
       mesh.userData = { key: object.key, editable: object.editable };
+      mesh.castShadow = object.kind !== 'light' && object.kind !== 'ground';
+      mesh.receiveShadow = true;
       this.scene.add(mesh);
       this.meshes.set(object.key, mesh);
       if (object.editable) {
@@ -522,7 +921,7 @@ export class SceneView {
         button.addEventListener(
           'click',
           () => {
-            this.setView('space');
+            if (this.display === 'image') this.setView('space');
             this.select(object.key);
           },
           {
@@ -586,6 +985,7 @@ export class SceneView {
       `相机 ${this.state.camera.eye.map((x) => x.toFixed(1)).join(' · ')}`;
   }
   private sync(): void {
+    this.syncHistory();
     for (const input of this.controls.querySelectorAll<HTMLInputElement>('input[data-param]')) {
       input.value = String(
         input.dataset.param === 'fov'
@@ -597,8 +997,8 @@ export class SceneView {
         `${(100 * (Number(input.value) - Number(input.min))) / (Number(input.max) - Number(input.min))}%`,
       );
     }
-    for (const out of this.controls.querySelectorAll<HTMLOutputElement>('output'))
-      out.textContent = format(
+    for (const out of this.controls.querySelectorAll<HTMLInputElement>('input[data-readout]'))
+      out.value = format(
         Number(
           out.dataset.readout === 'fov'
             ? this.state.camera.fov
@@ -628,37 +1028,69 @@ export class SceneView {
     const mesh = this.meshes.get(key);
     if (mesh && mesh.userData.editable) this.gizmo.attach(mesh);
     else this.gizmo.detach();
+    this.selectionBox.visible = !!mesh;
+    if (mesh) {
+      this.selectionBox.setFromObject(mesh);
+      this.setInspector('objects');
+    }
     this.syncSelection();
     this.paint();
   }
   private syncSelection(): void {
-    for (const button of this.objects.querySelectorAll<HTMLButtonElement>('button'))
+    for (const button of this.objects.querySelectorAll<HTMLButtonElement>('button')) {
       button.classList.toggle('active', button.dataset.object === this.selected);
+      button.setAttribute('aria-pressed', String(button.dataset.object === this.selected));
+    }
     const object = this.state.objects.find((o) => o.key === this.selected);
-    this.host.querySelector('.scene-selection')!.textContent = object
-      ? `${object.label}  ${object.position.map((x) => x.toFixed(2)).join(' · ')}`
-      : '未选择物体';
+    this.host.querySelector('.scene-selection')!.textContent = object ? object.label : '选择物体';
+    const transform = this.host.querySelector<HTMLElement>('.scene-transform')!;
+    transform.hidden = !object;
+    this.host.querySelector('.scene-transform-name')!.textContent = object?.label ?? '';
+    for (const input of transform.querySelectorAll<HTMLInputElement>('[data-transform]')) {
+      const property = input.dataset.transform as 'position' | 'rotation' | 'scale';
+      input.value = object ? format(object[property][Number(input.dataset.axis)]) : '0';
+    }
   }
   private setTool(mode: typeof this.mode): void {
     this.mode = mode;
     this.gizmo.setMode(mode);
-    for (const b of this.host.querySelectorAll<HTMLButtonElement>('[data-tool]'))
+    for (const b of this.host.querySelectorAll<HTMLButtonElement>('[data-tool]')) {
       b.classList.toggle('active', b.dataset.tool === mode);
+      b.setAttribute('aria-pressed', String(b.dataset.tool === mode));
+    }
     this.paint();
   }
-  private focus(): void {
-    const mesh = this.meshes.get(this.selected);
-    if (!mesh) return;
-    this.remember();
-    const offset = this.camera.position.clone().sub(this.orbit.target);
-    this.orbit.target.copy(mesh.position);
-    this.camera.position.copy(mesh.position).add(offset);
-    this.orbit.update();
+  private focus(all = false): void {
+    const box = new THREE.Box3();
+    const selected = this.meshes.get(this.selected);
+    for (const object of this.state.objects) {
+      if (object.kind === 'light' || object.kind === 'ground') continue;
+      const mesh = this.meshes.get(object.key)!;
+      if (all || !selected || selected === mesh) box.expandByObject(mesh);
+    }
+    if (box.isEmpty() && selected) box.expandByObject(selected);
+    if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const radius = box.getSize(new THREE.Vector3()).length() / 2;
+    const distance = Math.max(
+      0.5,
+      (radius * 1.25) / Math.sin((this.state.camera.fov * Math.PI) / 360),
+    );
+    const eye = this.camera.position
+      .clone()
+      .sub(this.orbit.target)
+      .normalize()
+      .multiplyScalar(distance)
+      .add(center);
+    this.moveCamera(eye.toArray() as Vec3, center.toArray() as Vec3);
   }
   private paint(): void {
     if (this.raf || this.disposed) return;
     this.raf = requestAnimationFrame(() => {
       this.raf = 0;
+      const selected = this.meshes.get(this.selected);
+      if (selected) this.selectionBox.update();
+      this.compass.update(this.camera);
       this.renderer.render(this.scene, this.camera);
     });
   }
@@ -760,11 +1192,13 @@ export class SceneView {
       view: this.display,
       selected: this.selected,
       probe: this.probePixel,
+      wire: this.wire,
     };
   }
   dispose(): void {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
+    cancelAnimationFrame(this.cameraMotion);
     this.renderClient.dispose();
     this.abort.abort();
     this.resize.disconnect();
@@ -783,6 +1217,15 @@ export class SceneView {
       }
     });
     this.renderer.dispose();
+    this.guides.traverse((object) => {
+      if (object instanceof THREE.Mesh || object instanceof THREE.Sprite) {
+        if ('geometry' in object) object.geometry.dispose();
+        const material = object.material as THREE.MeshBasicMaterial;
+        material.map?.dispose();
+        material.dispose();
+      }
+    });
+    this.light.shadow.map?.dispose();
     this.renderer.forceContextLoss();
   }
 }

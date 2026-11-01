@@ -1,4 +1,8 @@
 import katex from 'katex';
+import { EditHistory } from './history.ts';
+import { icon } from './icons.ts';
+import { numberField } from './number-field.ts';
+import { plotColor } from './visual-style.ts';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-typescript';
 import { cameraFrame, defaults } from '../chapters/03-camera/scene.ts';
@@ -30,6 +34,7 @@ export class CameraStudy {
   animation = 0;
   frameRequest = 0;
   rayScale = 1;
+  history = new EditHistory<CameraParams>();
   $: <T extends Element = HTMLElement>(selector: string) => T;
   constructor(host: HTMLElement, openSource: () => void, saved?: CameraSnapshot) {
     this.host = host;
@@ -42,14 +47,14 @@ export class CameraStudy {
       <header class="cs-heading">
         <div><span class="cs-kicker">相机研究 <span>01 / DOLLY ZOOM</span></span>
         <h3>前景不变，背景为何靠近？</h3></div>
-        <button class="cs-reset" type="button" title="恢复基准构图" aria-label="重置相机研究">↺</button>
+        <div class="cs-actions"><button class="cs-undo" title="撤销" aria-label="撤销">${icon('undo')}</button><button class="cs-redo" title="重做" aria-label="重做">${icon('redo')}</button><button class="cs-reset" type="button" title="恢复基准构图" aria-label="重置相机研究">${icon('reset')}</button></div>
       </header>
       <div class="cs-scene">
         <svg class="cs-image" viewBox="0 0 1080 600" role="img" aria-label="TypeScript 投影的三维展廊，青色前景与金色背景为等高的拱门"><g transform="translate(540 300) scale(600 -600)"></g></svg>
         <div class="cs-scene-note"><span class="cs-live-dot"></span>透视成像 <span class="cs-framing-note">前景正面锁定</span></div>
         <span class="cs-object-label cs-front-label" data-focus="front">A<span>前景</span></span>
         <span class="cs-object-label cs-back-label" data-focus="back">B<span>背景</span></span>
-        <span class="cs-drag-hint">↔ 拖动画面，移动相机</span>
+
       </div>
       <div class="cs-measurements">
         <div class="cs-metric cs-front" data-focus="front"><span><b>A</b> 前景像高</span><strong data-value="frontPercent">—</strong><small>占画幅高度</small></div>
@@ -80,7 +85,7 @@ export class CameraStudy {
         <summary><span><i>01</i> 展开光路与推导</span><span class="cs-summary-mark">＋</span></summary>
         <div class="cs-explanation-body">
           <div class="cs-section-title"><span>同一场景的侧面剖视</span><small>拖动相机或 B，检验不同的距离关系</small></div>
-          <div class="cs-ray-wrap"><svg class="cs-rays" viewBox="0 0 960 200" role="group" aria-label="从相机到两道等高拱门的光线剖视，两个坐标轴使用相同空间尺度"><g class="cs-ray-art"></g><g class="cs-ray-labels"></g><g class="cs-ray-handle" data-ray-param="distance" role="slider" tabindex="0" aria-label="剖视相机距离" aria-valuemin="2.4" aria-valuemax="18"><rect x="-30" y="-28" width="60" height="56" fill="transparent"/><path d="M-18-8h20v16h-20zM2-4l9-5v18L2 4" fill="#e5eee7" stroke="#394e52" stroke-width="1.8"/><title>拖动相机</title></g><g class="cs-ray-handle" data-ray-param="gap" role="slider" tabindex="0" aria-label="剖视背景间隔" aria-valuemin="2" aria-valuemax="14"><rect x="-30" y="-40" width="60" height="80" fill="transparent"/><circle r="6" fill="#f6f7f1" stroke="#b88036" stroke-width="2"/><title>拖动背景 B</title></g></svg></div>
+          <div class="cs-ray-wrap"><svg class="cs-rays" viewBox="0 0 960 200" role="group" aria-label="从相机到两道等高拱门的光线剖视，两个坐标轴使用相同空间尺度"><g class="cs-ray-art"></g><g class="cs-ray-labels"></g><g class="cs-ray-handle" data-ray-param="distance" role="slider" tabindex="0" aria-label="剖视相机距离" aria-valuemin="2.4" aria-valuemax="18"><rect x="-30" y="-28" width="60" height="56" fill="transparent"/><path d="M-18-8h20v16h-20zM2-4l9-5v18L2 4" fill="#203c49" stroke="#e6edf6" stroke-width="1.8"/><title>拖动相机</title></g><g class="cs-ray-handle" data-ray-param="gap" role="slider" tabindex="0" aria-label="剖视背景间隔" aria-valuemin="2" aria-valuemax="14"><rect x="-30" y="-40" width="60" height="80" fill="transparent"/><circle r="6" fill="#111824" stroke="#f4d66a" stroke-width="2"/><title>拖动背景 B</title></g></svg></div>
           <div class="cs-ray-distances"><span>相机到 A <b data-value="rayDistance">—</b></span><span>A 到 B <b data-value="gap">—</b></span></div>
           <div class="cs-argument">
             <p>相机后退，前景的深度从 <i>d</i> 增大；背景的深度则始终为 <i>d + Δ</i>。两者增加相同的距离，所占的比例却不同。</p>
@@ -97,15 +102,28 @@ export class CameraStudy {
     const on: On = (node, event, fn) =>
       node.addEventListener(event, fn as EventListener, { signal: this.controller.signal });
     on(this.$('.cs-reset'), 'click', () => {
+      this.remember();
       this.stop();
       this.params = structuredClone(defaults);
       this.syncControls();
       this.request();
     });
+    on(this.$('.cs-undo'), 'click', () => this.restore(this.history.undo(this.params)));
+    on(this.$('.cs-redo'), 'click', () => this.restore(this.history.redo(this.params)));
+    on(host, 'keydown', (event) => {
+      if (event.target instanceof HTMLInputElement) return;
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        this.restore(
+          event.shiftKey ? this.history.redo(this.params) : this.history.undo(this.params),
+        );
+      }
+    });
     on(this.$('.cs-play'), 'click', () => (this.playing ? this.stop() : this.play()));
     on(this.$('.cs-source'), 'click', openSource);
     host.querySelectorAll<HTMLButtonElement>('[data-distance]').forEach((button) =>
       on(button, 'click', () => {
+        this.remember();
         this.stop();
         this.params.mode = 'compensated';
         this.params.distance = Number(button.dataset.distance);
@@ -115,6 +133,7 @@ export class CameraStudy {
       }),
     );
     on(this.$('.cs-mode'), 'click', () => {
+      this.remember();
       this.stop();
       if (this.params.mode === 'compensated') {
         this.params.focal = this.frame?.values.focal ?? defaults.focal;
@@ -123,13 +142,33 @@ export class CameraStudy {
       this.syncControls();
       this.request();
     });
-    host.querySelectorAll<HTMLInputElement>('[data-param]').forEach((input) =>
+    host.querySelectorAll<HTMLInputElement>('[data-param]').forEach((input) => {
+      const key = input.dataset.param as 'focal' | 'gap';
+      on(input, 'pointerdown', () => this.remember());
+      on(input, 'keydown', (event) => {
+        if (event.key.startsWith('Arrow')) this.remember();
+      });
       on(input, 'input', () => {
         this.stop();
-        this.params[input.dataset.param as 'focal' | 'gap'] = +input.value;
+        this.params[key] = +input.value;
         this.request();
-      }),
-    );
+      });
+      const field = numberField(
+        key === 'focal' ? '焦距 / mm' : '前后间隔 / m',
+        +input.min,
+        +input.max,
+        +input.step,
+        () => this.remember(),
+        (value) => {
+          this.stop();
+          this.params[key] = value;
+          this.request();
+        },
+        this.controller.signal,
+      );
+      field.dataset.output = key;
+      this.$('[data-output="' + key + '"]').replaceWith(field);
+    });
     this.bindDrag(this.$('.cs-rail'), on, true);
     this.bindDrag(this.$('.cs-scene'), on, false);
     this.bindRays(on);
@@ -144,6 +183,7 @@ export class CameraStudy {
       };
       if (!(event.key in steps) && !['Home', 'End'].includes(event.key)) return;
       event.preventDefault();
+      this.remember();
       this.stop();
       this.params.distance =
         event.key === 'Home'
@@ -187,6 +227,7 @@ export class CameraStudy {
       let gesture: { x: number; value: number; scale: number } | undefined;
       on(handle, 'pointerdown', (event) => {
         if (event.button !== 0 || !this.frame) return;
+        this.remember();
         this.stop();
         handle.setPointerCapture(event.pointerId);
         handle.focus({ preventScroll: true });
@@ -213,6 +254,7 @@ export class CameraStudy {
       on(handle, 'keydown', (event) => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
+        this.remember();
         this.stop();
         const direction = (event.key === 'ArrowRight' ? 1 : -1) * (key === 'distance' ? -1 : 1);
         this.params[key] =
@@ -230,6 +272,7 @@ export class CameraStudy {
     let gesture: { x: number; distance: number } | undefined;
     on(node, 'pointerdown', (event) => {
       if (event.button !== 0) return;
+      this.remember();
       this.stop();
       node.setPointerCapture(event.pointerId);
       gesture = { x: event.clientX, distance: this.params.distance };
@@ -261,7 +304,23 @@ export class CameraStudy {
       });
   }
 
+  remember() {
+    this.history.remember(this.params);
+    this.syncHistory();
+  }
+  syncHistory() {
+    this.$<HTMLButtonElement>('.cs-undo').disabled = !this.history.canUndo;
+    this.$<HTMLButtonElement>('.cs-redo').disabled = !this.history.canRedo;
+  }
+  restore(params?: CameraParams) {
+    if (!params) return;
+    this.stop();
+    this.params = structuredClone(params);
+    this.syncControls();
+    this.request();
+  }
   syncControls() {
+    this.syncHistory();
     const free = this.params.mode === 'free';
     this.$('.cs-free').hidden = !free;
     this.$('.cs-mode').setAttribute('aria-pressed', String(free));
@@ -291,6 +350,20 @@ export class CameraStudy {
   }
 
   drawItems(group: SVGElement, items: Primitive[]) {
+    const room: Record<string, string> = {
+      '#237e79': '#58c4dd',
+      '#eae5db': '#192333',
+      '#e7e1d5': '#202c3b',
+      '#f0ece3': '#182332',
+      '#f8f5ee': '#131e2e',
+      '#d2cbbb': '#3b5069',
+      '#d9d2c3': '#31445b',
+      '#ccc5b6': '#3b5069',
+      '#bec8c5': '#71849a',
+      '#175b59': '#397e8d',
+      '#80592e': '#a8883b',
+    };
+    const color = (hex: string) => room[hex] ?? plotColor(hex);
     if (group.children.length !== items.length) {
       group.replaceChildren(
         ...items.map((item) =>
@@ -310,11 +383,11 @@ export class CameraStudy {
         node.setAttribute('cx', String(item.at[0]));
         node.setAttribute('cy', String(item.at[1]));
         node.setAttribute('r', String(item.radius));
-        node.setAttribute('fill', item.color);
+        node.setAttribute('fill', color(item.color));
       } else if (item.kind === 'line' || item.kind === 'polygon') {
         node.setAttribute('points', item.points.map((p) => p.join(',')).join(' '));
-        node.setAttribute('fill', item.kind === 'polygon' ? item.color : 'none');
-        node.setAttribute('stroke', item.color);
+        node.setAttribute('fill', item.kind === 'polygon' ? color(item.color) : 'none');
+        node.setAttribute('stroke', color(item.color));
         node.setAttribute(
           'stroke-width',
           String(item.kind === 'line' ? item.width : item.opacity < 1 ? 0 : 0.3),
@@ -356,8 +429,8 @@ export class CameraStudy {
       label.style.top = (1 - y / 0.5) * 50 + '%';
       label.hidden = Math.abs(x) > 0.86 || Math.abs(y) > 0.46;
     }
-    this.$('[data-output="focal"]').textContent = v.focal.toFixed(1) + ' mm';
-    this.$('[data-output="gap"]').textContent = v.gap.toFixed(1) + ' m';
+    this.$<HTMLInputElement>('[data-output="focal"]').value = v.focal.toFixed(1);
+    this.$<HTMLInputElement>('[data-output="gap"]').value = v.gap.toFixed(1);
     for (const input of this.host.querySelectorAll<HTMLInputElement>('[data-param]')) {
       if (document.activeElement !== input)
         input.value = String(v[input.dataset.param as 'focal' | 'gap']);
@@ -373,8 +446,8 @@ export class CameraStudy {
       frame.items.filter((item) => item.panel === 'rays'),
     );
     const labels: [number, string, string][] = [
-      [-v.distance, '相机', '#394e52'],
-      [0, 'A', '#237e79'],
+      [-v.distance, '相机', '#e6edf6'],
+      [0, 'A', '#58c4dd'],
       [v.gap, 'B', '#b88036'],
     ];
     this.$('.cs-ray-labels').replaceChildren(
@@ -383,7 +456,7 @@ export class CameraStudy {
         label.setAttribute('x', String(origin + x * scale));
         label.setAttribute('y', String(90 + 1.1 * scale + 30));
         label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('fill', color);
+        label.setAttribute('fill', plotColor(color));
         label.textContent = text;
         return label;
       }),
@@ -408,6 +481,7 @@ export class CameraStudy {
   }
 
   play() {
+    this.remember();
     this.playing = true;
     this.$('.cs-play').setAttribute('aria-pressed', 'true');
     this.$('.cs-play').setAttribute('aria-label', '暂停相机运动');

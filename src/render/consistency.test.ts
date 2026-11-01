@@ -32,6 +32,26 @@ test('正交窗口缩放改变实际成像，不能只改变空间预览', () =>
   const b = renderStudy(state, 32);
   assert.notDeepEqual(a.owner, b.owner);
 });
+test('固定正交窗口时沿光轴移动相机，不改变高光或环境反射', () => {
+  for (const chapter of ['07', '09', '11']) {
+    const state = studySpec(chapter).state;
+    state.camera = {
+      ...state.camera,
+      projection: 'orthographic',
+      eye: [0, 0, 5],
+      target: [0, 0, 0],
+      zoom: 1,
+    };
+    state.params.mode = 'lit';
+    const before = renderStudy(state, 32);
+    state.camera.eye = [0, 0, 10];
+    state.camera.zoom = 2; // The editor derives window size from distance / zoom.
+    const after = renderStudy(state, 32);
+    assert.deepEqual(before.owner, after.owner);
+    assert.ok(before.owner.some((owner) => owner >= 0));
+    close([...before.linear], [...after.linear], 1e-10);
+  }
+});
 test('解析椭球轮廓与拾取满足独立几何条件', () => {
   const axes: Vec3 = [2, 1, 0.7],
     view = project([], 35, 25);
