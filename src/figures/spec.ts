@@ -16,6 +16,7 @@ export type FigureSpec = {
   controls: Control[];
   compute: (params: Params, progress: number) => Frame;
   animated?: boolean;
+  /** 以秒计的完整播放时长；默认 7 秒。 */
   duration?: number;
   initialProgress?: number;
 };

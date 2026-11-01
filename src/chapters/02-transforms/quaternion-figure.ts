@@ -44,7 +44,7 @@ export const quaternionFigure: FigureSpec = {
     slider('azimuth', '观察方位', -180, 180, 1, '°'),
     slider('elevation', '观察仰角', -75, 75, 1, '°'),
   ],
-  duration: 6500,
+  duration: 6.5,
   initialProgress: 0.45,
   compute(p, t) {
     const d = new Drawing(),

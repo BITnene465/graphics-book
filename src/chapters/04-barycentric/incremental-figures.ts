@@ -20,7 +20,7 @@ export const incrementalFigures: FigureSpec[] = [
     source: '/src/chapters/04-barycentric/incremental.ts',
     defaults: { a: [-7, -3], b: [7, 4] },
     controls: [],
-    duration: 6000,
+    duration: 6,
     initialProgress: 0.5,
     compute(p, t) {
       const d = new Drawing([-10, 10, -6, 6]),
@@ -55,7 +55,7 @@ export const incrementalFigures: FigureSpec[] = [
     source: '/src/chapters/04-barycentric/incremental.ts',
     defaults: { center: [0, 0], radius: 6 },
     controls: [slider('radius', '整数半径', 0, 10, 1)],
-    duration: 6000,
+    duration: 6,
     initialProgress: 0.6,
     compute(p, t) {
       const d = new Drawing([-14, 14, -12, 12]),
@@ -101,7 +101,7 @@ export const incrementalFigures: FigureSpec[] = [
       ],
     },
     controls: [],
-    duration: 7500,
+    duration: 7.5,
     initialProgress: 0.65,
     compute(p, t) {
       const d = new Drawing([-1, 17, -1, 15]),
