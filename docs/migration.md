@@ -2,7 +2,7 @@
 
 本次迁移已完成：教学算法、交互和静态构建全部使用 TypeScript / Web，环境由 npm 管理。当前树没有 Python、Pyodide、uv、Panel 或后端 API。
 
-旧版保存在本地标签 `archive/python-edition-20261101`（`d12e79b9467b88b8d43c02c2132beae8e01e2336`）。新版位于 `web-edition`，从新的根提交开始；旧版归档不进入新版构建与发布。迁移没有推送或改写远端历史。
+旧版保存在本地标签 `archive/python-edition-20261101`（`d12e79b9467b88b8d43c02c2132beae8e01e2336`），GitHub 上保留原 `main` 历史。新版位于 `web-edition`，从新的根提交开始；旧版归档不进入新版构建与发布。2026-11-02 已将 `web-edition` 上传并设为公开仓库的默认分支，启用 GitHub Pages；原有分支历史保持完整。
 
 ## 完成条件
 
@@ -40,4 +40,4 @@
 | 15 光线追踪 | 求交、阴影射线、有限反射 | 2 | 2 |
 | 合计 | 另有综合实践与附录 | 55 | 35 |
 
-完整 GAMES101 覆盖仍列在 [TODO](TODO.md)，不计入本次迁移完成范围。GitHub Actions 与 Pages 配置已准备，远端运行与公开发布尚未执行。
+完整 GAMES101 覆盖仍列在 [TODO](TODO.md)，不计入本次迁移完成范围。[在线教材](https://bitnene465.github.io/graphics-book/) 已发布，云端检查与公网验收见 [verification.md](verification.md)。

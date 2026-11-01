@@ -46,12 +46,22 @@
 
 这些数字是已载入页面上的输入至结果测量，包含浏览器调度，不是跨设备性能承诺；完整图像时间包含等待操作停止的 260 ms。此前本机测量的首帧约 84–85 ms，结果随运行状态波动。
 
+## GitHub 与公网发布
+
+2026-11-02，Web 版已发布至公开仓库 [BITnene465/graphics-book](https://github.com/BITnene465/graphics-book)，默认分支为 `web-edition`。旧版 `main` 历史保留。在线阅读地址为 [bitnene465.github.io/graphics-book](https://bitnene465.github.io/graphics-book/)，启用 HTTPS。
+
+发布代码提交为 `631f2da189916fe1bad9eca9d28246d1ab31944d`。[云端检查](https://github.com/BITnene465/graphics-book/actions/runs/41326872499) 在 Ubuntu、Node.js 24 上通过 221 项测试、格式检查、31 份正文与附录检查及生产构建。[Pages 部署](https://github.com/BITnene465/graphics-book/actions/runs/41326872538) 成功；首次运行遇到默认分支限制，增加 `web-edition` 的环境部署许可后重跑通过。
+
+直接访问公网地址逐一加载十五章的 70 个演示和四个附录，无未捕获页面异常、公式错误或 HTTP 资源错误。三维实验的 Worker 完成完整成像；改变反射参数后像素变化，完整源码高亮与 PNG 下载正常。390 px 窄屏的纹理章节没有横向溢出，图解面板可切换。
+
+后续对 `web-edition` 的教材或代码更新会自动检查并部署；仅修改 README 或 `docs/` 时不重复部署。代码采用 MIT，教材正文采用 CC BY 4.0。
+
 ## 构建与发布边界
 
 - 生产目录约 3.6 MB，包含自带公式字体与运行依赖许可。三维模块按需加载；其单独压缩前块约 609 kB，Vite 仍给出超过 500 kB 的体积提示。该提示没有被隐藏，也不是运行错误。
 - 软件成像运行于 Worker。拖动时提供最高 128×128 的交互预览，停止 260 ms 后补齐所选分辨率；高分辨率或复杂场景仍可能耗时，尚未提供逐块进度。
 - Three.js 空间视图使用近似材质；教学算法图像才是光照、过滤、阴影与反射的核对依据。
 - 当前树不含旧 Python 运行文件、uv 配置或虚拟环境；旧版保留为本地 Git 归档。npm 依赖、构建结果和验证截图不提交。
-- GitHub Actions 与 Pages 工作流已配置；本地构建与子路径检查的结果如上，公网部署结果在发布后补充。真实触屏设备仍需进一步试读。
+- GitHub Actions 与 Pages 已通过公网验收；真实触屏设备仍需进一步试读。
 
 重跑命令与环境入口见 [README](../README.md)。后续功能范围见 [TODO](TODO.md)。
