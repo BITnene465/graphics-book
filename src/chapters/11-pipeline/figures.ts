@@ -1,3 +1,4 @@
+import { pipeline as deskFigure } from '../../book-scene/foundations.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { parallelFigure } from './parallel-figure.ts';
 import { rectangle, bitmap, rgb } from '../../figures/helpers.ts';
@@ -8,6 +9,7 @@ import { lookAt, perspective } from '../03-camera/core.ts';
 import { gridScene, renderFrame, sourceOver, fragmentStage } from './core.ts';
 
 export const figures: FigureSpec[] = [
+  deskFigure,
   parallelFigure,
   {
     id: 'pipeline-stages',

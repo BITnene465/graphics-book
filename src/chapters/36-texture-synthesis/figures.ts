@@ -2,7 +2,8 @@ import { Drawing, palette } from '../../figures/drawing.ts';
 import { imagePanel } from '../../figures/advanced.ts';
 import { slider, number, choice } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
-import { makeImage } from '../../math/image.ts';
+import { makeImage, sample as imageSample } from '../../math/image.ts';
+import { deskImage } from '../../book-scene/render.ts';
 import { quiltStrip, movingStrokes } from './core.ts';
 export const figures: FigureSpec[] = [
   {
@@ -23,15 +24,10 @@ export const figures: FigureSpec[] = [
     ],
     compute(p) {
       const d = new Drawing(),
-        sample = makeImage(60, 40, (u, v) => {
-          const t =
-            0.4 +
-            0.25 * Math.sin(55 * u + 4 * Math.sin(17 * v)) * 0.8 +
-            0.12 * Math.cos(38 * v + 6 * u);
-          return [0.15 + t * 0.6, 0.2 + t * 0.5, 0.12 + t * 0.3];
-        }),
+        reference = deskImage(240, 160),
+        sample = makeImage(40, 28, (u, v) => imageSample(reference, 84 + 40 * u, 98 + 28 * v)),
         out = quiltStrip(sample, 20, number(p, 'overlap'), 5, number(p, 'seed'), p.cut === 'cut');
-      imagePanel(d, '输入样本', sample.width, sample.height, sample.data);
+      imagePanel(d, '桌面照片局部 · 含光照', sample.width, sample.height, sample.data);
       imagePanel(d, '匹配得到的纹理条带', out.width, out.height, out.data);
       d.values = { 块数: 5, 块边长: 20, 候选块每步: 30, 输出宽度: out.width };
       return d.result();

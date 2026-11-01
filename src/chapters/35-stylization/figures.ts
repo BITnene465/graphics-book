@@ -1,8 +1,8 @@
+import { deskImage } from '../../book-scene/render.ts';
 import { Drawing } from '../../figures/drawing.ts';
 import { imagePanel } from '../../figures/advanced.ts';
 import { slider, number } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
-import { illustration } from '../../math/image.ts';
 import { linearToSrgb } from '../01-pixels/core.ts';
 import { bilateral, toon, strokes } from './core.ts';
 export const figures: FigureSpec[] = [
@@ -10,7 +10,7 @@ export const figures: FigureSpec[] = [
     id: 'toon-abstraction',
     chapter: '35',
     title: '分开观察保边平滑、色阶与线条',
-    subtitle: '同一幅自绘图案经过可检查的三个步骤。',
+    subtitle: '开篇桌面的实际线性图像经过三个可检查的步骤。',
     source: '/src/chapters/35-stylization/core.ts',
     animated: false,
     defaults: { range: 0.15, radius: 2, levels: 5, threshold: 0.06 },
@@ -22,7 +22,7 @@ export const figures: FigureSpec[] = [
     ],
     compute(p) {
       const d = new Drawing(),
-        source = illustration(72, 50),
+        source = deskImage(72, 50),
         smooth = bilateral(source, number(p, 'radius'), number(p, 'range')),
         out = toon(smooth, number(p, 'levels'), number(p, 'threshold'));
       for (const [name, img] of [
@@ -50,7 +50,7 @@ export const figures: FigureSpec[] = [
     ],
     compute(p, progress) {
       const d = new Drawing([-1.5, 1.5, -1.05, 1.05]),
-        source = illustration(96, 64),
+        source = deskImage(96, 64),
         ss = strokes(source, number(p, 'count'), number(p, 'length'), number(p, 'seed')),
         count = Math.floor(progress * ss.length);
       for (const s of ss.slice(0, count)) {

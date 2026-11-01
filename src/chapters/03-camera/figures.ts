@@ -1,9 +1,11 @@
+import { camera as deskFigure } from '../../book-scene/foundations.ts';
 import { vanishingFigure } from './vanishing-figure.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { number, vec2, slider, choice } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'projection-rays',
     chapter: '03',

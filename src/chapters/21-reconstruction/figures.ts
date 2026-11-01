@@ -1,3 +1,4 @@
+import { stereo as deskFigure } from '../../book-scene/geometry-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { drawMesh } from '../../figures/advanced.ts';
 import { slider, number, vec2 } from '../../figures/spec.ts';
@@ -5,6 +6,7 @@ import type { FigureSpec } from '../../figures/spec.ts';
 import type { Vec2, Vec3 } from '../../math/vector.ts';
 import { triangulateRays, icp, tetraSurface } from './core.ts';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'stereo-triangulation',
     chapter: '21',

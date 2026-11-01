@@ -8,17 +8,20 @@ import { defaultControl, patchMesh, stitchPatches } from '../chapters/14-surface
 import type { Continuity } from '../chapters/13-bezier/splines.ts';
 import { slider, choice } from '../figures/spec.ts';
 import type { Control, Params } from '../figures/spec.ts';
+import { latheScene } from '../book-scene/geometry.ts';
 
 export type ObjectState = {
   key: string;
   label: string;
-  kind: 'box' | 'sphere' | 'plane' | 'ground' | 'grid' | 'patch' | 'control' | 'light';
+  kind: 'box' | 'sphere' | 'plane' | 'ground' | 'grid' | 'patch' | 'control' | 'light' | 'lathe';
   position: Vec3;
   rotation: Vec3;
   scale: Vec3;
   color: Vec3;
   editable?: boolean;
   mirror?: number;
+  profile?: [number, number][];
+  detail?: number;
 };
 export type CameraState = {
   eye: Vec3;
@@ -367,8 +370,9 @@ export function studySpec(chapter: string): StudySpec {
 
 /** 几何也由教学函数生成。Three.js 和软件渲染读取同一份顶点与法线。 */
 export function localScene(object: ObjectState, state: StudyState): Scene {
-  const detail = Number(state.params.detail ?? 20),
+  const detail = Number(object.detail ?? state.params.detail ?? 20),
     color = object.color;
+  if (object.kind === 'lathe') return latheScene(object.profile!, detail * 2, color);
   if (object.kind === 'sphere' || object.kind === 'light' || object.kind === 'control') {
     const mesh = makeMesh(
       [1, 1, 1],
@@ -504,8 +508,15 @@ export function localScene(object: ObjectState, state: StudyState): Scene {
     faces.map(() => color),
   );
 }
-export function buildScene(state: StudyState): Scene {
-  const result: Scene = { vertices: [], faces: [], normals: [], uv: [], colors: [] };
+export function buildScene(state: StudyState): Scene & { faceObjects: string[] } {
+  const result: Scene & { faceObjects: string[] } = {
+    vertices: [],
+    faces: [],
+    normals: [],
+    uv: [],
+    colors: [],
+    faceObjects: [],
+  };
   for (const object of state.objects) {
     if (object.kind === 'control' || object.kind === 'light') continue;
     const mesh = localScene(object, state),
@@ -520,6 +531,7 @@ export function buildScene(state: StudyState): Scene {
       ),
     );
     result.faces.push(...mesh.faces.map((f) => f.map((i) => i + offset) as Vec3));
+    result.faceObjects.push(...mesh.faces.map(() => object.key));
     result.uv.push(...mesh.uv);
     result.colors.push(...mesh.colors);
   }

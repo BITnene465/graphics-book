@@ -2,7 +2,8 @@ import { Drawing, palette } from '../../figures/drawing.ts';
 import { choice, slider, number } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 import { drawMesh } from '../../figures/advanced.ts';
-import { gridMesh, adjacency } from '../../math/mesh.ts';
+import { gridMesh, adjacency, triangulate } from '../../math/mesh.ts';
+import { latheMesh, shadeProfile } from '../../book-scene/geometry.ts';
 import { smooth, laplacian, dirichletEnergy, constrainedSolve } from './core.ts';
 
 export const figures: FigureSpec[] = [
@@ -24,8 +25,13 @@ export const figures: FigureSpec[] = [
       boundary: true,
       azimuth: 35,
       elevation: 35,
+      shape: 'grid',
     },
     controls: [
+      choice('shape', '研究对象', [
+        ['grid', '高度网格'],
+        ['shade', '台灯灯罩'],
+      ]),
       choice('method', '时间离散', [
         ['explicit', '显式'],
         ['implicit', '隐式'],
@@ -46,12 +52,20 @@ export const figures: FigureSpec[] = [
     ],
     compute(p, t) {
       const d = new Drawing(),
-        mesh = gridMesh(
-          8,
-          (x, y) =>
-            0.3 * Math.cos(x * 1.5) * Math.cos(y * 1.5) +
-            number(p, 'noise') * Math.sin(17 * x + 4 * y) * Math.cos(13 * y),
-        );
+        mesh =
+          p.shape === 'shade'
+            ? triangulate(latheMesh(shadeProfile(0, 3), 8))
+            : gridMesh(
+                8,
+                (x, y) =>
+                  0.3 * Math.cos(x * 1.5) * Math.cos(y * 1.5) +
+                  number(p, 'noise') * Math.sin(17 * x + 4 * y) * Math.cos(13 * y),
+              );
+      if (p.shape === 'shade')
+        mesh.vertices = mesh.vertices.map(([x, y, z]) => {
+          const noise = 1 + number(p, 'noise') * 0.2 * Math.sin(5 * Math.atan2(z, x) + 9 * y);
+          return [2 * x * noise, 2 * z * noise, 2 * (y - 0.17)];
+        });
       const boundary = adjacency(mesh)
           .boundary.map((b, i) => (b.length ? i : -1))
           .filter((i) => i >= 0),

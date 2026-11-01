@@ -32,6 +32,7 @@ import {
 } from '../chapters/09-texture-functions/core.ts';
 import { encodeRgba } from '../chapters/01-pixels/core.ts';
 import { unit } from '../chapters/02-transforms/spatial.ts';
+import { renderDesk } from '../book-scene/render.ts';
 
 export type StudyOutput = {
   width: number;
@@ -80,6 +81,21 @@ export function renderStudy(
 ): StudyOutput {
   if (!Number.isInteger(size) || size < 32 || size > 2048)
     throw new RangeError('渲染分辨率须为 32 至 2048');
+  if (state.params.desk) {
+    const frame = renderDesk(state, size, size);
+    return {
+      width: size,
+      height: size,
+      pixels: encodeRgba(frame.color),
+      linear: frame.color,
+      depth: frame.depth,
+      owner: frame.owner,
+      world: frame.world,
+      normal: frame.normal,
+      uv: frame.uv,
+      stats: { 三角形: frame.counts.submitted, 通过深度测试: frame.counts.passed },
+    };
+  }
   const { chapter, params, camera } = state,
     eye = camera.eye,
     light =

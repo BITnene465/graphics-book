@@ -15,6 +15,7 @@ import { stageColor } from './visual-style.ts';
 import { icon } from './icons.ts';
 
 type SceneDisplay = 'image' | 'space' | 'split';
+type TransformMode = 'translate' | 'rotate' | 'scale';
 export type SceneSnapshot = {
   state: StudyState;
   channel: string;
@@ -60,7 +61,7 @@ export class SceneView {
   private visible = false;
   private disposed = false;
   private restoring = false;
-  private mode: 'translate' | 'rotate' | 'scale' = 'translate';
+  private mode: TransformMode = 'translate';
   private history = new EditHistory<SceneSnapshot>();
   private guides: THREE.Group;
   private compass: ViewCompass;
@@ -80,6 +81,8 @@ export class SceneView {
   ) {
     this.host = host;
     this.spec = customSpec ?? studySpec(chapter);
+    // 旧综合实践的柱体场景不能覆盖新版教材的台灯初始状态。
+    if (customSpec?.state.params.desk && !saved?.state.params.desk) saved = undefined;
     this.state = structuredClone(saved?.state ?? this.spec.state);
     this.channel = saved?.channel ?? 'color';
     this.display =
@@ -89,7 +92,7 @@ export class SceneView {
     this.wire = saved?.wire ?? false;
     host.className = 'scene-study';
     host.innerHTML = `
-      <header class="figure-heading"><div><span class="figure-kicker">${chapter} / 综合实验</span><h3>${this.spec.title}</h3></div>
+      <header class="figure-heading"><div><span class="figure-kicker">${this.state.params.desk ? '附录 / 综合实践' : chapter + ' / 综合实验'}</span><h3>${this.spec.title}</h3></div>
         <div class="figure-actions"><button data-action="source" title="阅读完整算法" aria-label="阅读完整算法">〈/〉</button><button data-action="undo" title="撤销" aria-label="撤销">↶</button><button data-action="reset" title="恢复场景与相机" aria-label="恢复场景与相机">↺</button><button data-action="save" title="下载完整图像" aria-label="导出 PNG" disabled>↓</button><button data-action="full" title="全屏" aria-label="全屏">⛶</button></div>
       </header>
       <div class="scene-toolbar">
@@ -249,7 +252,7 @@ export class SceneView {
       a.click();
     });
     host.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach((b) =>
-      b.addEventListener('click', () => this.setTool(b.dataset.tool as typeof this.mode), {
+      b.addEventListener('click', () => this.setTool(b.dataset.tool as TransformMode), {
         signal,
       }),
     );
@@ -428,6 +431,7 @@ export class SceneView {
       '14': ['pair', 'continuity', 'detail'],
       '15': ['bounces', 'mirrorA', 'mirrorB', 'specular'],
     };
+    if (this.state.params.desk) primary[this.state.chapter] = ['power', 'stripes', 'mode'];
     const geometryKeys = new Set(['detail', 'wave', 'pair', 'continuity', 'leftSpan', 'rightSpan']);
     for (const control of [fov, ...this.spec.controls]) {
       const group = document.createElement('div');
@@ -1051,7 +1055,7 @@ export class SceneView {
       input.value = object ? format(object[property][Number(input.dataset.axis)]) : '0';
     }
   }
-  private setTool(mode: typeof this.mode): void {
+  private setTool(mode: TransformMode): void {
     this.mode = mode;
     this.gizmo.setMode(mode);
     for (const b of this.host.querySelectorAll<HTMLButtonElement>('[data-tool]')) {

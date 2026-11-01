@@ -1,3 +1,4 @@
+import { hierarchy as deskFigure } from '../../book-scene/foundations.ts';
 import { quaternionFigure } from './quaternion-figure.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { grid, wire3 } from '../../figures/helpers.ts';
@@ -49,6 +50,7 @@ function views(d: Drawing, draw: (pick: (v: number[]) => Vec2, axes: number[]) =
 }
 
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'basis-transform',
     chapter: '02',

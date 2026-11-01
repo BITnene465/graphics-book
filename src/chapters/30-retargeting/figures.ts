@@ -1,8 +1,9 @@
+import { deskImage } from '../../book-scene/render.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { imagePanel } from '../../figures/advanced.ts';
 import { slider, number, vec2 } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
-import { illustration, makeImage, sample } from '../../math/image.ts';
+import { makeImage, sample } from '../../math/image.ts';
 import { energy, verticalSeam, removeSeam } from './core.ts';
 export const figures: FigureSpec[] = [
   {
@@ -16,7 +17,7 @@ export const figures: FigureSpec[] = [
     controls: [slider('remove', '删除列数', 0, 32, 1), slider('strength', '保护权重', 0, 10, 0.1)],
     compute(p, progress) {
       const d = new Drawing(),
-        source = illustration(80, 56),
+        source = deskImage(80, 56),
         center = vec2(p, 'protect'),
         count = Math.floor(progress * number(p, 'remove'));
       let image = source,

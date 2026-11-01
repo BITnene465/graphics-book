@@ -1,3 +1,4 @@
+import { registration as deskFigure } from '../../book-scene/imaging-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { choice, number, points, slider } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
@@ -10,6 +11,7 @@ const corners: Vec2[] = [
   [-1, 1],
 ];
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'homography-grid',
     chapter: '31',

@@ -1,3 +1,4 @@
+import { ending as deskFigure } from '../../book-scene/animation-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { plot } from '../../figures/advanced.ts';
 import { slider, number, choice, vec2 } from '../../figures/spec.ts';
@@ -5,6 +6,7 @@ import type { FigureSpec } from '../../figures/spec.ts';
 import { random } from '../../math/vector.ts';
 import { oscillator, initialFlock, flockStep, particleAt } from './core.ts';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'integrator-energy',
     chapter: '39',

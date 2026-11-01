@@ -1,3 +1,4 @@
+import { subdivision as deskFigure } from '../../book-scene/geometry-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { choice, slider, number, points } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
@@ -15,6 +16,7 @@ import {
 import { project } from '../12-geometry/core.ts';
 
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'subdivision-editor',
     orbitPanels: ['控制网', '有限细分网格'],

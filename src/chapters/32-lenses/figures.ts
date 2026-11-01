@@ -1,9 +1,11 @@
+import { lens as deskFigure } from '../../book-scene/imaging-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { imagePanel } from '../../figures/advanced.ts';
 import { slider, number, vec2, choice } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 import { imageDistance, circleOfConfusion, lensRay } from './core.ts';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'thin-lens-rays',
     chapter: '32',

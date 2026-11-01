@@ -3,7 +3,8 @@ import { imagePanel } from '../../figures/advanced.ts';
 import { slider, number, choice, vec2 } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 import type { Vec2 } from '../../math/vector.ts';
-import { makeImage } from '../../math/image.ts';
+import { makeImage, sample } from '../../math/image.ts';
+import { deskImage } from '../../book-scene/render.ts';
 import { poissonBlend, meanValueWeights } from './core.ts';
 export const figures: FigureSpec[] = [
   {
@@ -27,15 +28,10 @@ export const figures: FigureSpec[] = [
         w = 48,
         h = 36,
         center = vec2(p, 'center'),
-        source = makeImage(w, h, (u, v) => {
-          const x = ((u - 0.5) * 2 * w) / h - center[0],
-            y = 1 - 2 * v - center[1],
-            g =
-              0.12 +
-              0.3 * Math.exp(-40 * ((x - 0.12) ** 2 + (y - 0.05) ** 2)) +
-              0.12 * Math.sin(x * 24) * Math.cos(y * 20);
-          return [g + 0.15, g, g + 0.1];
-        }),
+        reference = deskImage(w, h),
+        source = makeImage(w, h, (u, v) =>
+          sample(reference, u * w - 0.5 - (center[0] * h) / 2, v * h - 0.5 + (center[1] * h) / 2),
+        ),
         target = makeImage(w, h, (u, v) => {
           const b = number(p, 'brightness') + 0.1 * u;
           return [b, b + 0.08, b + 0.13 + 0.04 * Math.sin(v * 50)];

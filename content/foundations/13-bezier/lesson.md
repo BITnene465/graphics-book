@@ -230,6 +230,12 @@ $$
 
 [[include:spline-lesson.md]]
 
+### 一条曲线将成为灯罩的轮廓
+
+灯罩外壁的剖面是一条三次 Bézier 母线，控制点以“半径、高度”表示。两端决定顶部和开口尺寸，内部点控制鼓起的程度；内部控制点一般不在轮廓上，这与本章一开始的区分相同。下一章将实际拖动这两个内部点，并让同一条曲线旋转成台灯的三维外壁。
+
+曲线还会以另一种含义回到[第 37 章](?chapter=keyframes)：横轴变成时间，曲线值变成小球位置，此时导数具有速度单位。形状相似的曲线可以表示不同的量，参数与单位必须随问题一起说明。
+
 ## 17 · 核心实现与练习
 
 按正文顺序，先读 [fitting.ts](fitting.ts) 的 `interpolate`，核对样本约束；`fitPolynomial` 将相同约束放宽为最小二乘。再读 `deCasteljau`、`bernstein` 与 `evaluate`，从控制点求出同一个位置。`derivative` 把控制点换成差向量，`arcLengthParameters` 处理数值弧长，[curvature.ts](curvature.ts) 组合解析导数得到曲率与标架。理解 `split` 的参数映射后，再读 Hermite、`cubicJoin`、B-spline 基函数与局部 `deBoor`；最后用有理权重解释圆弧。每个文件只负责一个明确的数学问题。

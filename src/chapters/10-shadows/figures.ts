@@ -1,3 +1,4 @@
+import { shadows as deskFigure } from '../../book-scene/foundations.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { bitmap, rectangle } from '../../figures/helpers.ts';
 import { slider, choice, number } from '../../figures/spec.ts';
@@ -5,6 +6,7 @@ import type { FigureSpec } from '../../figures/spec.ts';
 import { pcfVisibility, renderScene } from './core.ts';
 
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'shadow-compare',
     chapter: '10',

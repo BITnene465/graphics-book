@@ -3,6 +3,7 @@ import { plot, imagePanel } from '../../figures/advanced.ts';
 import { slider, number, choice, vec2 } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 import { estimateSquare, renderPaths } from './core.ts';
+import { deskState, DESK } from '../../book-scene/model.ts';
 let cacheKey = '';
 let cache: Float64Array = new Float64Array();
 export const figures: FigureSpec[] = [
@@ -48,12 +49,12 @@ export const figures: FigureSpec[] = [
   {
     id: 'diffuse-path-image',
     chapter: '26',
-    title: '漫反射路径的成像结果',
-    subtitle: '拖动俯视图中的球体位置；图像由本章 CPU 路径积分器计算。',
+    title: '从桌面取出小球，单独研究随机光路',
+    subtitle: '保留主场景的球、地面与相机；暂用均匀材质和环境光隔离路径采样。',
     source: '/src/chapters/26-path-tracing/core.ts',
     animated: true,
     duration: 10,
-    defaults: { samples: 12, bounces: 3, seed: 11, position: [1, -0.5] },
+    defaults: { samples: 12, bounces: 3, seed: 11, position: [...DESK.ball] },
     controls: [
       slider('samples', '每像素样本', 1, 48, 1),
       slider('bounces', '反射上限', 1, 8, 1),
@@ -65,26 +66,48 @@ export const figures: FigureSpec[] = [
         N = Math.max(1, Math.floor(1 + progress * (number(p, 'samples') - 1))),
         key = JSON.stringify([N, p.bounces, p.seed, position]);
       if (key !== cacheKey) {
-        cache = renderPaths(48, 36, N, number(p, 'bounces'), number(p, 'seed'), [
-          position[0],
-          0.7,
-          position[1],
-        ]);
+        const state = deskState(),
+          table = state.objects.find((o) => o.key === 'table')!;
+        cache = renderPaths(
+          96,
+          64,
+          N,
+          number(p, 'bounces'),
+          number(p, 'seed'),
+          [position[0], DESK.radius, position[1]],
+          {
+            scene: {
+              spheres: [
+                {
+                  center: [position[0], DESK.radius, position[1]],
+                  radius: DESK.radius,
+                  color: [...DESK.ballColor],
+                  mirror: 0,
+                },
+              ],
+              groundColor: table.color,
+              groundMirror: 0,
+              groundExtent: 2.25,
+            },
+            eye: state.camera.eye,
+            target: state.camera.target,
+            fov: state.camera.fov,
+          },
+        );
         cacheKey = key;
       }
-      imagePanel(d, '线性累积 → sRGB 显示', 48, 36, cache);
+      imagePanel(d, '线性累积 → sRGB 显示', 96, 64, cache);
       d.panel('俯视位置 · x 与 z', [-3, 3, -2.25, 2.25], () => {
         d.axes(-2.8, 2.8, -2, 2);
-        d.dot([-0.95, 0], palette.blue, 0.8, 0.3);
-        d.dot(position, palette.red, 0.7, 0.4);
+        d.dot(position, palette.yellow, DESK.radius, 0.4);
         d.handle(position, 'position', '球体', { limits: [0.1, 2.3, -1.7, 1.5] });
       });
       d.values = {
         每像素样本: N,
         反射上限: number(p, 'bounces'),
-        输出像素: '48 × 36',
+        输出像素: '96 × 64',
         光源: '无限远环境',
-        模型: 'Lambert 漫反射；无去噪',
+        模型: '主场景的球与桌面子集；Lambert 常量反射率；无台灯直射项',
       };
       return d.result();
     },

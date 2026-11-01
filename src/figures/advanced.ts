@@ -39,6 +39,7 @@ export function imagePanel(
   rgb: ArrayLike<number>,
   exposure = 1,
   overlay?: () => void,
+  pixelated = false,
 ) {
   const rgba = new Uint8ClampedArray(width * height * 4);
   for (let i = 0; i < width * height; i++) {
@@ -48,7 +49,7 @@ export function imagePanel(
   }
   const aspect = width / height;
   d.panel(title, [-aspect, aspect, -1, 1], () => {
-    d.raster([-aspect, -1], [2 * aspect, 2], width, height, rgba);
+    d.raster([-aspect, -1], [2 * aspect, 2], width, height, rgba, pixelated);
     overlay?.();
   });
 }

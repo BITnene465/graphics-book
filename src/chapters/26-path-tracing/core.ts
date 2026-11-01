@@ -72,16 +72,25 @@ export function renderPaths(
   bounces: number,
   seed: number,
   position: Vec3 = [1, 0.7, -0.5],
+  setup?: { scene: RayScene; eye: Vec3; target: Vec3; fov: number },
 ): Float64Array {
-  const scene = defaultScene();
-  scene.spheres[1].center = [...position];
+  const scene = setup ? structuredClone(setup.scene) : defaultScene();
+  scene.spheres[scene.spheres.length - 1].center = [...position];
   const out = new Float64Array(width * height * 3);
   for (let row = 0; row < height; row++)
     for (let col = 0; col < width; col++) {
       // 每像素独立随机流；增加样本数保留此前样本。
       const rng = random(seed + Math.imul(row * width + col + 1, 2654435761));
       for (let s = 0; s < samples; s++) {
-        const ray = cameraRay(col + rng() - 0.5, row + rng() - 0.5, width, height, [3.4, 2.5, 5.5]);
+        const ray = cameraRay(
+          col + rng() - 0.5,
+          row + rng() - 0.5,
+          width,
+          height,
+          setup?.eye ?? [3.4, 2.5, 5.5],
+          setup?.target,
+          setup?.fov,
+        );
         const color = pathSample(ray.origin, ray.direction, scene, rng, bounces);
         for (let c = 0; c < 3; c++) out[3 * (row * width + col) + c] += color[c] / samples;
       }

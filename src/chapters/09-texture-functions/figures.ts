@@ -18,6 +18,7 @@ import {
 import { noiseProbe, fbm } from './procedural.ts';
 const source = '/src/chapters/09-texture-functions/';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'environment-direction',
     chapter: '09',
@@ -185,3 +186,4 @@ export const figures: FigureSpec[] = [
     },
   },
 ];
+import { pattern as deskFigure } from '../../book-scene/surface-studies.ts';

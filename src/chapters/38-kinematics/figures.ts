@@ -1,9 +1,11 @@
+import { kinematics as deskFigure } from '../../book-scene/animation-studies.ts';
 import { Drawing, palette, circle } from '../../figures/drawing.ts';
 import { slider, number, choice, vec2 } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 import type { Vec2 } from '../../math/vector.ts';
 import { forward, inverse, skin2 } from './core.ts';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'two-link-ik',
     chapter: '38',

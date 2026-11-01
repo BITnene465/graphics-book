@@ -40,6 +40,7 @@ function areaFrame(p: Params) {
   return d;
 }
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'barycentric-area',
     chapter: '04',
@@ -148,3 +149,4 @@ export const main: FigureSpec = {
     return d.result();
   },
 };
+import { triangle as deskFigure } from '../../book-scene/surface-studies.ts';

@@ -1,27 +1,17 @@
 /** 综合实践只负责组合章节函数；光栅、阴影和颜色算法仍在各章。 */
-import { studySpec, buildScene } from '../render/scenes.ts';
+import { buildScene } from '../render/scenes.ts';
 import type { StudySpec, StudyState } from '../render/scenes.ts';
 import { renderStudy } from '../render/render-study.ts';
 import type { StudyOutput } from '../render/render-study.ts';
 import { encodeRgba } from '../chapters/01-pixels/core.ts';
 import { rasterizeWorld, sceneMatrices, shadowQuery } from '../chapters/10-shadows/core.ts';
 import type { Vec3 } from '../math/vector.ts';
+import { deskSpec } from '../book-scene/model.ts';
 
 export function capstoneSpec(): StudySpec {
-  const spec = studySpec('10');
-  spec.title = '综合实践：一幅图像，两次可见性计算';
+  const spec = deskSpec();
+  spec.title = '综合实践：台灯、小球与桌面';
   spec.source = '/src/capstone/core.ts';
-  spec.state.objects.find((o) => o.key === 'pillar')!.position = [-1, 0.8, -0.4];
-  spec.state.objects.push({
-    key: 'ellipsoid',
-    label: '椭球',
-    kind: 'sphere',
-    position: [1, 0.75, 0.3],
-    rotation: [0, 0, 0],
-    scale: [0.9, 0.75, 0.6],
-    color: [0.12, 0.46, 0.35],
-    editable: true,
-  });
   return spec;
 }
 
@@ -73,7 +63,9 @@ export function inspectCapstone(state: StudyState, frame: StudyOutput, row: numb
   const vp = sceneMatrices(light).lightVP,
     size = Number(state.params.shadowSize);
   const shadow = rasterizeWorld(
-    scene.faces.map((face) => face.map((j) => scene.vertices[j])),
+    scene.faces
+      .filter((_, i) => scene.faceObjects[i] !== 'bulb')
+      .map((face) => face.map((j) => scene.vertices[j])),
     vp,
     size,
   );

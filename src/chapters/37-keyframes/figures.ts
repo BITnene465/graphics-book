@@ -1,3 +1,4 @@
+import { keyframes as deskFigure } from '../../book-scene/animation-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { drawMesh, plot } from '../../figures/advanced.ts';
 import { slider, number, choice } from '../../figures/spec.ts';
@@ -6,6 +7,7 @@ import type { Vec3, Vec4 } from '../../math/vector.ts';
 import { cubeMesh } from '../../math/mesh.ts';
 import { hermiteMotion, slerp, rotateQuaternion } from './core.ts';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'keyframe-velocity',
     chapter: '37',

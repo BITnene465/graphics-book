@@ -1,3 +1,4 @@
+import { shade as deskFigure } from '../../book-scene/geometry-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { normalCurvatureFigure } from './curvature-figure.ts';
 import { nurbsFigures } from './nurbs-figures.ts';
@@ -56,6 +57,7 @@ function drawPatch(d: Drawing, p: Params, control: ControlNet, color = palette.g
   }
 }
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'patch-construction',
     chapter: '14',

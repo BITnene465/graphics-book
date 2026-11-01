@@ -1,10 +1,11 @@
 import { Drawing, palette } from '../../figures/drawing.ts';
-import { slider, number } from '../../figures/spec.ts';
+import { slider, number, choice } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 import { drawMesh } from '../../figures/advanced.ts';
 import { cubeMesh, triangulate, gridMesh, adjacency } from '../../math/mesh.ts';
 import { catmullClark } from '../16-subdivision/core.ts';
 import { simplify, cluster, splitEdge } from './core.ts';
+import { latheMesh, shadeProfile } from '../../book-scene/geometry.ts';
 
 export const figures: FigureSpec[] = [
   {
@@ -16,20 +17,38 @@ export const figures: FigureSpec[] = [
     source: '/src/chapters/18-remeshing/core.ts',
     animated: true,
     duration: 8,
-    defaults: { steps: 10, azimuth: 35, elevation: 30 },
+    defaults: { steps: 10, azimuth: 35, elevation: 30, shape: 'shade' },
     controls: [
+      choice('shape', '参考几何', [
+        ['shade', '台灯灯罩'],
+        ['cube', '细分立方体'],
+      ]),
       slider('steps', '折叠上限', 0, 18, 1),
       slider('azimuth', '观察方位', -180, 180, 1, '°'),
       slider('elevation', '观察仰角', -60, 70, 1, '°'),
     ],
     compute(p, t) {
       const d = new Drawing(),
-        original = triangulate(catmullClark(cubeMesh())),
+        original = triangulate(
+          p.shape === 'shade' ? latheMesh(shadeProfile(0, 3), 8) : catmullClark(cubeMesh()),
+        ),
         result = simplify(original, Math.floor(number(p, 'steps') * t)),
         az = number(p, 'azimuth'),
         el = number(p, 'elevation');
-      d.panel('原网格', [-1.4, 1.4, -1.4, 1.4], () => drawMesh(d, original, az, el, palette.muted));
-      d.panel('折叠后', [-1.4, 1.4, -1.4, 1.4], () => drawMesh(d, result.mesh, az, el));
+      // 世界 Y 在这张局部数学图中显示为竖直 Z；仅调整显示，不改变误差求解。
+      const display = (mesh: typeof original) =>
+        p.shape === 'shade'
+          ? {
+              ...mesh,
+              vertices: mesh.vertices.map(
+                ([x, y, z]) => [2 * x, 2 * z, 2 * (y - 0.17)] as [number, number, number],
+              ),
+            }
+          : mesh;
+      d.panel('原网格', [-1.4, 1.4, -1.4, 1.4], () =>
+        drawMesh(d, display(original), az, el, palette.muted),
+      );
+      d.panel('折叠后', [-1.4, 1.4, -1.4, 1.4], () => drawMesh(d, display(result.mesh), az, el));
       const E = adjacency(result.mesh).edges.length;
       d.values = {
         执行折叠: result.costs.length,

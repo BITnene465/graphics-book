@@ -1,3 +1,4 @@
+import { opening as deskFigure } from '../../book-scene/foundations.ts';
 import { Drawing, palette, circle } from '../../figures/drawing.ts';
 import { bitmap, rectangle, rgb } from '../../figures/helpers.ts';
 import { number, vec2, slider, choice } from '../../figures/spec.ts';
@@ -5,6 +6,7 @@ import type { FigureSpec } from '../../figures/spec.ts';
 import { sampleOffsets, mixColors, renderImage, probePixel } from './core.ts';
 
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'pixel-sampling',
     chapter: '01',

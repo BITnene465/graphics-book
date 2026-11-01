@@ -1,3 +1,4 @@
+import { sensor as deskFigure } from '../../book-scene/imaging-studies.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { imagePanel, plot } from '../../figures/advanced.ts';
 import { slider, number } from '../../figures/spec.ts';
@@ -5,6 +6,7 @@ import type { FigureSpec } from '../../figures/spec.ts';
 import { makeImage } from '../../math/image.ts';
 import { mosaic, demosaic, bayerChannel, sensorSamples } from './core.ts';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'bayer-reconstruction',
     chapter: '33',

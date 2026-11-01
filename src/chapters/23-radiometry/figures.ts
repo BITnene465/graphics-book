@@ -1,9 +1,11 @@
+import { radiometry as deskFigure } from '../../book-scene/light-study.ts';
 import { Drawing, palette } from '../../figures/drawing.ts';
 import { plot } from '../../figures/advanced.ts';
 import { slider, number, vec2 } from '../../figures/spec.ts';
 import type { FigureSpec } from '../../figures/spec.ts';
 import { pointIrradiance, rectangleSolidAngle, rectangleIrradiance } from './core.ts';
 export const figures: FigureSpec[] = [
+  deskFigure,
   {
     id: 'flux-distance',
     chapter: '23',
