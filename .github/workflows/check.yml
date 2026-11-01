@@ -1,0 +1,40 @@
+name: Check textbook
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: macos-latest
+            python: '3.12'
+          - os: windows-latest
+            python: '3.12'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.10.8'
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Install the locked lightweight environment
+        run: uv sync --locked
+      - name: Check mathematics, rendering, book links and source download
+        run: uv run --locked python tools/check.py
+      - name: Run the complete example
+        run: uv run --locked python projects/foundation-renderer/main.py --size 64

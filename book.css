@@ -1,0 +1,89 @@
+:host { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: #203c34; font-size: 14px; }
+:host(.book-page) { padding: 22px 24px 45px; }
+.eyebrow { font-size: 11px; letter-spacing: .16em; color: #6f8179; font-weight: 600; }
+.masthead { display: flex; justify-content: space-between; gap: 20px; border-bottom: 1px solid #dbe2d9; padding-bottom: 17px; align-items: baseline; }
+.brand { font-size: 17px; font-weight: 650; letter-spacing: -.025em; }
+.brand, .brand:visited { color: #234d36; text-decoration: none; }
+.trail { font-size: 12px; color: #76877d; }
+.heading { display: flex; align-items: flex-start; gap: 22px; padding: 25px 0 14px; }
+.lesson-no { font-size: 55px; font-weight: 300; line-height: 1; color: #a9bcb0; font-variant-numeric: tabular-nums; }
+h1 { font-size: clamp(26px, 3vw, 36px); font-weight: 650; letter-spacing: -.025em; margin: 0 0 12px; line-height: 1.4; }
+.subtitle { color: #6e7e73; margin: 0; font-size: 14px; line-height: 1.8; }
+.canvas-label { display: flex; justify-content: space-between; gap: 15px; font-size: 12px; color: #62776a; padding: 5px 0 10px; }
+.canvas-label strong { color: #294a3a; }
+.readout { font-size: 13px; line-height: 1.65; }
+.readout .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.state { font-size: 12px; color: #17724d; background: #e7f1e8; border-radius: 3px; padding: 3px 9px; }
+.state.outside { color: #ab583c; background: #faeadd; }
+.state.error { color: #b13737; background: #fbe7e4; }
+.point { font-size: 21px; letter-spacing: -.04em; margin: 7px 0 17px; }
+.weights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+.weight { border-top: 3px solid var(--ink); padding-top: 7px; }
+.weight .label { color: var(--ink); font-size: 12px; }
+.weight .value { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 25px; letter-spacing: -.075em; }
+.equation { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #566b60; margin: 11px 0 18px; line-height: 1.9; }
+.area-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+.area-table td { border-bottom: 1px solid #e5e9e1; padding: 7px 0; }
+.area-table td:last-child { text-align: right; font-family: ui-monospace, monospace; }
+.mix { display: flex; gap: 14px; align-items: center; margin-top: 19px; }
+.swatch { width: 47px; height: 47px; flex-shrink: 0; border-radius: 5px; border: 1px solid #cfd8cd; }
+.muted { color: #62756a; font-size: 12px; }
+.status-line { color: #62756a; font-size: 12px; padding: 8px 0; line-height: 1.7; }
+.hint { padding: 16px 20px; border-left: 3px solid #73a283; background: #edf3e9; font-size: 13px; line-height: 1.9; }
+.hint strong { display: block; color: #244b33; margin-bottom: 3px; }
+.section-title { font-size: 12px; color: #576d5c; margin: 12px 0 6px; }
+.code-path { font-family: ui-monospace, monospace; font-size: 12px; color: #527560; padding: 12px 0; }
+.footer { border-top: 1px solid #dbe2d9; margin-top: 22px; padding-top: 15px; display: flex; justify-content: space-between; font-size: 11px; color: #7b8b7e; }
+:host(.markdown) { font-family: "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif; font-size: 17px; line-height: 2; color: #33483b; }
+:host(.markdown) h2, :host(.markdown) h3 { font-family: -apple-system, "PingFang SC", sans-serif; color: #244936; font-weight: 650; line-height: 1.5; }
+:host(.markdown) h2 { margin: 48px 0 22px; padding-top: 22px; border-top: 1px solid #dbe2d9; font-size: 24px; }
+:host(.markdown) h3 { font-size: 21px; }
+:host(.markdown) p, :host(.markdown) li { font-family: "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif; }
+:host(.markdown) p { margin: 18px 0; }
+:host(.markdown) li { margin-bottom: 9px; }
+:host(.markdown) strong { font-weight: 700; }
+:host(.markdown) code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; color: #35684e; background: #edf2e8; padding: 2px 4px; border-radius: 3px; }
+:host(.markdown) pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.8; padding: 22px; background: #f0f4ed; border: 1px solid #dde5d8; border-radius: 5px; overflow: auto; max-width:100%; box-sizing:border-box; }
+:host(.markdown) pre code { padding: 0; font-size: inherit; background: none; }
+:host(.markdown) table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+:host(.markdown) img { max-width: 100%; height: auto; margin: 20px 0 6px; }
+:host(.markdown) figure { margin: 24px 0; max-width: 100%; overflow-x: auto; }
+:host(.markdown) .book-figure img { display: block; width: 100%; min-width: 640px; max-width: none; }
+:host(.markdown) .header-anchor { display: none; }
+mjx-container[display="true"] { display: block; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
+:host button.bk-btn { border-radius: 4px; font-family: -apple-system, "PingFang SC", sans-serif; font-size: 13px; transition: background-color .15s; }
+:host button.bk-btn.bk-btn-default { background: #fbfcf8; border: 1px solid #d6dfd2; color: #42624b; box-shadow: none; }
+:host button.bk-btn.bk-btn-default:hover { background: #e8f0e3; border-color: #96b09a; }
+:host button.bk-btn.bk-active { background: #e3eddf; border-color: #9bb49e; color: #244b33; box-shadow: none; }
+:host button:focus-visible { outline: 2px solid #427a53; outline-offset: 2px; }
+:host .bk-tab { font-family: -apple-system, "PingFang SC", sans-serif; font-size: 14px; padding: 12px 18px; background: transparent; border: none; border-bottom: 2px solid transparent; color: #647a6b; border-radius: 0; }
+:host .bk-tab.bk-active { border-bottom-color: #39674a; color: #234d34; font-weight: 600; box-shadow: none; }
+:host .bk-tab:hover { background: #edf3e9; }
+.book-contents { border-top: 1px solid #dbe2d9; border-bottom: 1px solid #dbe2d9; margin: 0 0 14px; }
+.book-contents summary { cursor: pointer; padding: 13px 0; color: #365c45; font-size: 13px; font-weight: 600; }
+.book-contents summary span { font-weight: 400; color: #6d7f71; margin-left: 14px; font-size: 12px; }
+.book-contents summary:hover { color: #102f1b; }
+.book-contents summary:focus-visible, a:focus-visible { outline: 2px solid #427a53; outline-offset: 4px; }
+.contents-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(165px,1fr)); gap: 20px; padding: 6px 0; }
+.contents-grid h3 { font-size: 13px; font-weight: 650; margin: 0 0 8px; }
+.contents-grid p { color: #718176; font-size: 13px; line-height: 2.2; margin: 0; }
+.contents-grid strong { color: #285a3f; background: #e8f0e3; padding: 4px; margin-left: -4px; }
+.contents-grid a { color: #285a3f; text-decoration: none; border-bottom: 1px solid #b5c9b6; }
+.contents-grid a:hover { color: #122f20; border-bottom-color: #386848; }
+.unwritten small { color: #89968b; font-size: 10px; margin-left: 4px; }
+.reading-toc { font-family: -apple-system, "PingFang SC", sans-serif; font-size: 13px; line-height: 1.9; padding: 18px 0; border-bottom: 1px solid #dbe2d9; }
+.reading-toc b { display: block; color: #597462; margin-bottom: 10px; font-size: 12px; letter-spacing: .1em; }
+.reading-toc a { display: inline-block; color: #466b52; margin: 0 18px 8px 0; text-decoration: none; border-bottom: 1px solid #bdcfba; }
+.chapter-navigation { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-top: 42px; border-top: 1px solid #c8d6c7; padding: 24px 0; font-size: 15px; }
+.chapter-navigation a { color: #2d6440; text-decoration: none; }
+.chapter-navigation a:hover { text-decoration: underline; }
+.contents-note { color: #768579; font-size: 12px; padding-bottom: 10px; }
+.chapter-guide { display: flex; flex-wrap: wrap; gap: 8px 24px; color: #6b7d71; font-size: 12px; line-height: 1.8; padding: 0 0 12px; }
+.chapter-guide b { color: #3b5e48; margin-right: 6px; font-weight: 550; }
+@media (max-width: 650px) { .trail { display: none; } .heading { gap: 13px; } .lesson-no { font-size: 43px; } :host(.markdown) { font-size: 16px; line-height: 1.95; } :host(.markdown) h2 { font-size: 22px; } .book-contents summary span { display: block; margin: 7px 0 0 16px; } .canvas-label { flex-wrap: wrap; gap: 5px; } }
+@media (max-width: 650px) { .book-figure::before { content: "示意图可横向滑动查看 →"; display: block; font: 12px/1.8 system-ui; color: #62756a; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+@media (max-width: 650px) { :host(.book-page) { padding: 18px 12px 32px; } }
+:host(.accordion), :host(.card) { box-shadow: none !important; outline: none !important; border: 1px solid #dbe2d9; border-radius: 4px; }
+:host .accordion-header { outline: none; background: #edf2e8; border-bottom: 1px solid #dbe2d9; }
+:host .card-title { font-size: 14px; color: #365c45; }

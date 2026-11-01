@@ -1,0 +1,22 @@
+[project]
+name = "graphic-lab"
+version = "1.0.0"
+description = "Python-first interactive graphics lessons"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2,<3",
+    "markdown-it-py>=4,<5",
+    "mdit-py-plugins>=0.6,<1",
+]
+
+[project.optional-dependencies]
+# The earlier Panel notebooks are retained as an optional interface.
+legacy = ["panel>=1.8,<2", "bokeh>=3.8,<4"]
+# Optional Apple Silicon acceleration; excluded from the default installation.
+gpu = [
+    "torch>=2.5,<3; sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+[tool.uv]
+package = false

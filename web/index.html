@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f5f4f0" />
+    <title>图形学 · 交互书</title>
+    <link rel="stylesheet" href="/web/vendor/katex.min.css" />
+    <link rel="stylesheet" href="/web/studio.css" />
+    <link rel="stylesheet" href="/web/editor-polish.css" />
+    <link rel="stylesheet" href="/web/figure-exploration.css" />
+    <script defer src="/web/vendor/katex.min.js"></script>
+    <script defer src="/web/vendor/prism-core.min.js" data-manual></script>
+    <script defer src="/web/vendor/prism-markup.min.js"></script>
+    <script defer src="/web/vendor/prism-clike.min.js"></script>
+    <script defer src="/web/vendor/prism-javascript.min.js"></script>
+    <script defer src="/web/vendor/prism-css.min.js"></script>
+    <script defer src="/web/vendor/prism-python.min.js"></script>
+    <script type="module" src="/web/studio.js"></script>
+  </head>
+  <body data-mode="book">
+    <header class="appbar">
+      <button
+        id="nav-toggle"
+        class="icon-button mobile-only"
+        title="收起或展开章节"
+        aria-label="收起或展开章节"
+        aria-controls="sidebar"
+        aria-expanded="true"
+      >
+        ☰</button
+      ><a class="brand" href="/app?chapter=01"
+        ><svg viewBox="0 0 28 28" aria-hidden="true">
+          <path d="M14 2 25 8v12l-11 6-11-6V8Z M3 8l11 6 11-6 M14 14v12" /></svg
+        ><span>图形学<span class="brand-sub">一本可以动手的书</span></span></a
+      ><span class="book-header-note"
+        >从像素到光线 <span>·</span> 计算机图形学基础</span
+      >
+      <div class="app-actions">
+        <button id="jump-demo" class="quiet-button">本章演示 ↓</button
+        ><button
+          id="help-button"
+          class="icon-button"
+          title="操作帮助与快捷键"
+          aria-label="操作帮助"
+        >
+          ?
+        </button>
+      </div>
+    </header>
+    <div class="app-body">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-heading">
+          <span>COMPUTER GRAPHICS</span><span class="edition">VOL. 01</span>
+        </div>
+        <div class="book-name">从像素到光线</div>
+        <nav id="chapters" aria-label="章节"></nav>
+        <div class="sidebar-bottom">
+          <details class="book-appendices">
+            <summary>附录与综合实践</summary>
+            <a href="/app?chapter=12&document=capstone">综合实践</a>
+            <a href="/app?chapter=01&document=math">数学补充</a>
+            <a href="/app?chapter=01&document=glossary">术语索引</a>
+          </details>
+          <span class="small-label">阅读位置</span>
+          <div class="progress-track"><span id="progress"></span></div>
+          <span id="progress-text"></span>
+        </div>
+      </aside>
+      <main id="main">
+        <div class="reading-layout">
+          <article id="lesson" class="prose"><p>正在展开本章…</p></article>
+        </div>
+      </main>
+    </div>
+    <div id="inline-demo" class="inline-demo">
+      <div class="demo-heading">
+        <div>
+          <span id="chapter-kicker" class="eyebrow"></span>
+          <h3>
+            <span id="chapter-title"></span
+            ><span class="live-label"><i></i> 可交互演示</span>
+          </h3>
+          <p id="chapter-summary" hidden></p>
+        </div>
+        <div class="demo-actions" aria-label="演示操作">
+          <button
+            id="undo-edit"
+            class="icon-button"
+            title="撤销 · Ctrl / ⌘ Z"
+            aria-label="撤销"
+            disabled
+          >
+            ↶
+          </button>
+          <button
+            id="redo-edit"
+            class="icon-button"
+            title="重做 · Ctrl / ⌘ Shift Z"
+            aria-label="重做"
+            disabled
+          >
+            ↷
+          </button>
+          <button
+            id="reset-params"
+            class="quiet-button"
+            title="恢复本章初始参数，可撤销"
+          >
+            重置
+          </button>
+          <button
+            id="toggle-properties"
+            class="quiet-button"
+            title="收起参数，扩大场景"
+            aria-controls="inspector"
+            aria-expanded="true"
+          >
+            参数
+          </button>
+          <button
+            id="maximize-demo"
+            class="icon-button"
+            title="放大演示"
+            aria-label="放大演示"
+            aria-expanded="false"
+          >
+            ⛶
+          </button>
+        </div>
+      </div>
+      <div class="demo-app">
+        <div class="presentation-bar">
+          <div class="presentation-modes" role="group" aria-label="演示视图">
+            <button data-presentation="image" aria-pressed="true">成像</button>
+            <button data-presentation="space" aria-pressed="false">空间</button>
+            <button data-presentation="split" aria-pressed="false">
+              双视图
+            </button>
+          </div>
+          <button id="image-interaction" aria-pressed="false" hidden>
+            操作画面
+          </button>
+          <span class="presentation-note" id="presentation-note"
+            >Python / NumPy</span
+          >
+          <button
+            id="save-image"
+            class="icon-button"
+            title="保存当前 Python 图像"
+            aria-label="保存当前图像"
+          >
+            ↓
+          </button>
+        </div>
+        <section id="studio-panel" class="studio-panel">
+          <div class="workspace">
+            <div class="editor-column">
+              <div class="view-toolbar">
+                <div class="view-title">
+                  <i class="view-dot"></i><span id="view-label">交互场景</span>
+                </div>
+                <div id="tool-buttons" class="tool-buttons"></div>
+                <button
+                  id="fit-view"
+                  class="icon-button"
+                  title="聚焦所选对象 / 适配视图 · F"
+                  aria-label="聚焦所选对象或适配视图"
+                >
+                  ⌖
+                </button>
+              </div>
+              <div id="scene-navigation" class="scene-navigation">
+                <div class="view-mode-buttons" aria-label="观察方式">
+                  <button
+                    data-view-mode="camera"
+                    title="通过成像相机观察和操作；拖动会改变 Python 图像"
+                  >
+                    成像视角
+                  </button>
+                  <button
+                    data-view-mode="space"
+                    title="从外部观察几何、相机与光路"
+                  >
+                    空间剖解
+                  </button>
+                </div>
+                <details class="display-options">
+                  <summary>辅助显示</summary>
+                  <div>
+                    <label
+                      ><input
+                        type="checkbox"
+                        data-display="grid"
+                        checked
+                      />网格</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        data-display="wireframe"
+                      />线框</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        data-display="normals"
+                      />法线</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        data-display="frustum"
+                      />视锥</label
+                    >
+                  </div>
+                </details>
+              </div>
+              <div class="viewport-wrap">
+                <div id="viewport" aria-label="直接拖动操作的图形学演示"></div>
+                <div id="viewport-corner" class="viewport-corner" hidden></div>
+                <div id="viewport-hint" class="viewport-hint" hidden></div>
+                <div id="viewport-empty" class="loading-message">
+                  正在构建交互场景…
+                </div>
+              </div>
+              <div class="view-footer">
+                <span id="selection-status"></span><span id="view-type"></span>
+              </div>
+            </div>
+            <div
+              id="scene-divider"
+              class="scene-divider"
+              role="separator"
+              aria-label="调整空间视图与成像列宽"
+              aria-orientation="vertical"
+              aria-valuemin="25"
+              aria-valuemax="75"
+              aria-valuenow="58"
+              tabindex="0"
+            ></div>
+            <div id="render-column" class="render-column">
+              <div class="image-exploration-tools">
+                <div id="channels" class="channel-tabs"></div>
+                <div class="comparison-actions">
+                  <button
+                    id="compare-render"
+                    title="拖动分界线比较两张 Python 图像"
+                    aria-pressed="false"
+                  >
+                    A/B 对照
+                  </button>
+                  <button
+                    id="freeze-render"
+                    title="定格当前结果，作为继续操作时的对照"
+                    aria-pressed="false"
+                  >
+                    定格 A
+                  </button>
+                </div>
+              </div>
+              <div id="render-well" class="render-well">
+                <img
+                  id="render-image"
+                  alt="随交互实时更新的 Python 成像"
+                  draggable="false"
+                  tabindex="0"
+                /><span id="image-probe" hidden></span
+                ><span class="render-placeholder">等待 Python 渲染</span>
+              </div>
+              <div class="render-caption">
+                <span id="image-dimensions"></span><span>单击像素检查数值</span>
+              </div>
+              <div id="metrics" class="metrics"></div>
+            </div>
+          </div>
+        </section>
+        <aside id="inspector" class="inspector">
+          <div class="inspector-tabs" role="tablist" aria-label="检查面板">
+            <button
+              id="tab-experiment"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panel-experiment"
+              data-inspector="experiment"
+            >
+              实验
+            </button>
+            <button
+              id="tab-object"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-object"
+              data-inspector="object"
+              tabindex="-1"
+            >
+              对象
+            </button>
+            <button
+              id="tab-pixel"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-pixel"
+              data-inspector="pixel"
+              tabindex="-1"
+            >
+              像素
+            </button>
+          </div>
+          <div class="inspector-scroll">
+            <section
+              id="panel-experiment"
+              role="tabpanel"
+              aria-labelledby="tab-experiment"
+            >
+              <div id="scene-parameters" class="scene-parameters">
+                <div id="controls"></div>
+              </div>
+              <div class="render-settings">
+                <div class="small-label">输出分辨率</div>
+                <div id="resolutions" class="resolution-buttons"></div>
+                <button id="render-button" class="primary-button">
+                  更新成像 <span>↵</span>
+                </button>
+              </div>
+            </section>
+            <section
+              id="panel-object"
+              role="tabpanel"
+              aria-labelledby="tab-object"
+              hidden
+            >
+              <div class="scene-section"><div id="scene-tree"></div></div>
+              <section
+                id="object-properties"
+                class="object-properties"
+                aria-label="所选对象属性"
+                hidden
+              ></section>
+            </section>
+            <section
+              id="panel-pixel"
+              role="tabpanel"
+              aria-labelledby="tab-pixel"
+              hidden
+            >
+              <div class="probe-details">
+                <div id="probe-values" class="probe-values"></div>
+              </div>
+            </section>
+          </div>
+        </aside>
+      </div>
+      <div class="demo-status">
+        <span id="status-dot" class="status-dot"></span
+        ><span id="status-text" role="status">准备交互</span
+        ><span id="render-timing"></span>
+      </div>
+      <div class="learning-strip">
+        <div>
+          <span class="small-label" hidden>试一试</span>
+          <p id="experiment-instruction" hidden></p>
+          <div id="presets" class="preset-buttons"></div>
+          <div id="inline-channels" class="channel-tabs"></div>
+        </div>
+        <div hidden>
+          <span class="small-label">想一想</span>
+          <p id="experiment-question"></p>
+        </div>
+      </div>
+    </div>
+    <details id="chapter-code" class="chapter-code">
+      <summary>
+        <span><span class="code-mark">〈/〉</span> 展开本章完整源码</span
+        ><span>Python · 带注释与高亮</span>
+      </summary>
+      <div id="source-panel" class="source-panel">
+        <div class="source-sidebar">
+          <div class="file-heading">本章源码</div>
+          <div id="source-tree"></div>
+          <a href="/api/download" class="download-source">↓ 下载整个项目</a>
+        </div>
+        <div class="source-editor">
+          <div class="source-toolbar">
+            <span id="source-name">core.py</span
+            ><span class="readonly-label">只读</span
+            ><button id="copy-source" class="quiet-button">复制</button
+            ><button id="download-file" class="quiet-button">下载</button>
+          </div>
+          <div id="source-breadcrumb" class="source-breadcrumb"></div>
+          <div class="code-scroll"><pre id="source-code"></pre></div>
+          <div class="source-status">
+            <span id="source-info"></span><span>完整文件 · 无省略</span>
+          </div>
+        </div>
+      </div>
+    </details>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <dialog id="help-dialog">
+      <button
+        id="close-help"
+        class="dialog-close"
+        title="关闭帮助"
+        aria-label="关闭帮助"
+      >
+        ×</button
+      ><span class="eyebrow">书中演示 · 操作指南</span>
+      <h2>观察、编辑、验证。</h2>
+      <dl>
+        <dt>动态推导</dt>
+        <dd>
+          彩色圆环是可拖动的控制点，方向键微调、Shift 精调。Ctrl / ⌘ +
+          滚轮缩放；拖动空白处、中键或按住空格平移；F
+          适配。轻按空格播放，时间轴与逐步按钮控制构造过程；离开视口后自动暂停。
+          触屏先选“操作图形”，结束后选“完成操作”恢复书页滚动。
+        </dd>
+        <dt>三维观察</dt>
+        <dd>
+          成像视角直接操纵拍摄相机；空间剖解从外部看场景。空白处拖动或 Alt
+          拖动旋转，Shift 拖动平移，滚轮缩放。
+        </dd>
+        <dt>直接编辑与对照</dt>
+        <dd>
+          拖动物体表面平移，W/E/R 使用坐标轴工具；点击 Python
+          图像联动选中对应物体。A/B 分界比较两个通道，定格 A
+          保留当前结果供后续操作对照。
+        </dd>
+        <dt>二维编辑</dt>
+        <dd>拖动控制点 · 空格拖动平移 · 滚轮缩放</dd>
+        <dt>精确参数</dt>
+        <dd>
+          左右拖动数值，Shift 精调；双击或 Enter 精确输入，方向键微调。XYZ
+          与场景手柄共用同一组参数。
+        </dd>
+        <dt>撤销 / 取消</dt>
+        <dd>
+          Ctrl / ⌘ Z 撤销，Ctrl / ⌘ Shift Z 重做；一次连续拖动算一步，Esc
+          取消当前拖动或输入。
+        </dd>
+        <dt>相机</dt>
+        <dd>
+          参考点平移整台相机，镜头角度相对当前观察方向；选中透视相机后 Alt +
+          滚轮调整视野。
+        </dd>
+        <dt>布局</dt>
+        <dd>
+          ⛶ 放大或还原演示；“成像 /
+          空间”切换观察对象，“双视图”并排对照。“参数”打开检查面板，实验、对象和像素各自保留状态。
+        </dd>
+        <dt>源码</dt>
+        <dd>
+          综合演示下展开本章完整源码；动态图右上角的 〈/〉 定位到对应的 Python
+          构造函数。
+        </dd>
+      </dl>
+      <p>
+        这些演示是运行中的程序。WebGL 负责即时三维观察与操作预览，Python / NumPy
+        计算成像与数值结果。
+      </p>
+    </dialog>
+  </body>
+</html>

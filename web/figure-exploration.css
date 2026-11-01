@@ -1,0 +1,336 @@
+/* Book-native mathematical instruments. Python owns the construction and values. */
+.teaching-figure {
+  border-color: #cad5dc;
+  border-radius: 8px;
+  font: 13px/1.5 var(--sans);
+}
+.figure-heading {
+  padding: 16px 20px;
+  gap: 14px;
+  background: #f0f3f3;
+}
+.figure-number {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.prose .figure-heading h3 {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 550;
+  line-height: 1.55;
+}
+.figure-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex: none;
+}
+.figure-actions button {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font: 20px var(--sans);
+}
+.figure-actions button[aria-label="查看 Python 构造代码"] {
+  font: 14px var(--mono);
+}
+.figure-actions button:hover {
+  color: #264e70;
+  background: #dfe7ec;
+}
+.figure-actions button:focus-visible,
+.figure-transport button:focus-visible,
+.figure-control button:focus-visible {
+  outline: 2px solid #80b5df;
+  outline-offset: 2px;
+}
+.math-stage {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.math-stage.has-panels {
+  max-height: none;
+}
+.math-stage.is-stacked {
+  min-height: 0;
+}
+.figure-equation {
+  min-height: 0;
+  padding: 8px 20px 16px;
+  font-size: 13px;
+}
+.figure-equation .katex-display {
+  margin: 0.45em 0;
+}
+.figure-transport {
+  gap: 10px;
+  padding: 10px 16px;
+  background: #192734;
+  border-color: #2b3d4b;
+}
+.figure-transport button {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  font-size: 21px;
+  border-radius: 4px;
+}
+.figure-transport input,
+.figure-control input {
+  appearance: none;
+  height: 24px;
+  background: transparent;
+  touch-action: none;
+}
+.figure-transport input::-webkit-slider-runnable-track,
+.figure-control input::-webkit-slider-runnable-track {
+  height: 3px;
+  background: #425967;
+  border-radius: 2px;
+}
+.figure-transport input::-webkit-slider-thumb,
+.figure-control input::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5.5px;
+  border: 2px solid #c8dde7;
+  border-radius: 50%;
+  background: #93b7ca;
+  box-shadow: 0 0 0 3px #17242f;
+}
+.figure-transport input::-moz-range-track,
+.figure-control input::-moz-range-track {
+  height: 3px;
+  background: #425967;
+}
+.figure-transport input::-moz-range-thumb,
+.figure-control input::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #c8dde7;
+  border-radius: 50%;
+  background: #93b7ca;
+}
+.figure-transport output {
+  font-size: 12px;
+  min-width: 40px;
+  color: #b0c4d1;
+}
+.figure-controls {
+  gap: 18px 24px;
+  padding: 18px 20px;
+  background: #17242f;
+  border-color: #2b3d4b;
+}
+.figure-control {
+  flex: 1 1 210px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.figure-control > span {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: #bed0dc;
+  margin: 0 0 3px;
+}
+.figure-control button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 7px 10px;
+  font: 13px/1.4 var(--sans);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #111e29;
+  color: #adbfca;
+}
+.figure-control button:hover {
+  background: #253b4a;
+  color: #e1eef5;
+}
+.figure-control button.active {
+  background: #344e5e;
+  border-color: #628398;
+  color: #e3edf3;
+}
+.figure-control input {
+  flex: 1;
+  min-width: 80px;
+  width: auto;
+  align-self: center;
+}
+.figure-control output {
+  font: 13px/1.5 var(--mono);
+  color: #d2dfeb;
+  min-width: 38px;
+  text-align: right;
+  align-self: center;
+}
+.figure-touch-bar {
+  display: none;
+}
+.figure-readout {
+  border-top: 1px solid #2b3d4b;
+}
+.figure-readout > summary {
+  padding: 13px 20px;
+  color: #adc2cf;
+  cursor: pointer;
+  font-size: 13px;
+}
+.figure-readout .figure-values {
+  border-top: 0;
+  padding: 2px 20px 16px;
+  gap: 10px 24px;
+}
+.figure-readout .figure-values > span {
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 0;
+}
+.figure-readout .figure-values > span > span {
+  font-size: 12px;
+  color: #a8bdcc;
+}
+.figure-readout .figure-values strong {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.math-stage:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px #719ebd;
+}
+.math-stage.is-panning,
+.math-stage.is-panning .math-handle,
+.math-stage.can-pan .math-handle {
+  cursor: grabbing;
+}
+.math-handle .handle-dot {
+  transition:
+    stroke-width 100ms,
+    fill 100ms;
+}
+.math-handle.is-selected .handle-dot {
+  stroke-width: 2.4;
+}
+.math-handle:focus-visible .handle-dot {
+  stroke-width: 3;
+  fill: #4a4534;
+  filter: drop-shadow(0 0 3px #ffdc8055);
+}
+.math-handle.is-dragging .handle-dot {
+  fill: #ffdc80;
+  stroke-width: 2;
+}
+.math-stage .handle-label,
+.math-stage .handle-coordinate {
+  pointer-events: none;
+  stroke: #101923;
+  stroke-width: 5px;
+  paint-order: stroke;
+}
+.math-stage .handle-coordinate {
+  opacity: 0;
+  font-family: var(--mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+.math-handle.is-dragging .handle-label,
+.math-handle.is-dragging .handle-coordinate,
+.math-handle:focus-visible .handle-coordinate {
+  opacity: 1;
+}
+@media (max-width: 720px) {
+  .figure-heading {
+    flex-wrap: wrap;
+    padding: 13px 12px;
+    gap: 10px;
+  }
+  .prose .figure-heading h3 {
+    flex: 1 1 100%;
+    font-size: 15px;
+  }
+  .figure-actions {
+    gap: 4px;
+  }
+  .figure-equation {
+    padding: 8px 12px 12px;
+  }
+  .figure-controls {
+    padding: 16px 14px;
+    gap: 18px;
+  }
+  .figure-control {
+    flex-basis: 100%;
+  }
+  .figure-control input {
+    width: auto;
+  }
+  .figure-transport {
+    gap: 5px;
+    padding: 8px;
+  }
+  .figure-readout > summary {
+    padding: 13px 14px;
+  }
+  .figure-readout .figure-values {
+    padding: 2px 14px 14px;
+  }
+}
+@media (any-pointer: coarse) {
+  .figure-touch-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 6px 12px;
+    border-bottom: 1px solid #293747;
+  }
+  .figure-touch-bar button {
+    border: 1px solid #42586c;
+    background: transparent;
+    color: #b9d1e2;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font: 14px var(--sans);
+    min-height: 44px;
+  }
+  .figure-touch-bar button[aria-pressed="true"] {
+    background: #284157;
+    color: #eef6ff;
+  }
+  .math-stage {
+    touch-action: pan-y pinch-zoom;
+  }
+  .touch-active .math-stage {
+    touch-action: none;
+  }
+  .figure-actions button,
+  .figure-control button,
+  .figure-transport button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .figure-control > span,
+  .figure-control button {
+    font-size: 14px;
+  }
+  .figure-control input,
+  .figure-transport input {
+    height: 44px;
+  }
+  .figure-transport input::-webkit-slider-thumb,
+  .figure-control input::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -7.5px;
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "package": "three",
+    "version": "0.180.0",
+    "source": "https://registry.npmjs.org/three/-/three-0.180.0.tgz"
+  },
+  {
+    "package": "prismjs",
+    "version": "1.30.0",
+    "source": "https://registry.npmjs.org/prismjs/-/prismjs-1.30.0.tgz"
+  },
+  {
+    "package": "katex",
+    "version": "0.16.22",
+    "source": "https://registry.npmjs.org/katex/-/katex-0.16.22.tgz"
+  }
+]
