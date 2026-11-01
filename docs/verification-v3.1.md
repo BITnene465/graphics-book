@@ -32,4 +32,14 @@
 
 ## 发布
 
-发布完成后在本节补录提交、部署与公开站点复验。v3.0.0 和 v2.1.0 保留为历史固定版本。
+实现提交为 `0e01c33af688b3951e9a35b094efc452e631c136`；术语修订提交为 `cb19f6c1c202383953d7c1d4a671047c964b9d3c`，将贯穿全书的“桌面场景”与各章独立的主演示区分开。两次提交的云端检查和部署均通过；最终代码的 [Check](https://github.com/BITnene465/graphics-book/actions/runs/41362964934) 与 [Pages 部署](https://github.com/BITnene465/graphics-book/actions/runs/41362964996) 可回查。
+
+公开站点逐章激活 39 章的 165 个演示，并检查四个附录，没有页面异常、HTTP 错误、公式错误或整页横向溢出。术语修订后再次核对首章、07、08、终章和综合实践；线上入口资源与本地验收构建一致。
+
+固定版本：[v3.1.0](https://github.com/BITnene465/graphics-book/releases/tag/v3.1.0)。静态站点附件 `graphics-book-v3.1.0-site.zip` 含 456 个文件，压缩包校验通过，SHA-256 为：
+
+```text
+c0402e2e06061ca19cef6c4e6394683650a75d9619a21b8121a9e92f698fe096
+```
+
+v3.0.0 和 v2.1.0 保留为历史固定版本。本记录随 v3.1.0 保存；[在线阅读](https://bitnene465.github.io/graphics-book/) 继续指向当前发布版。
