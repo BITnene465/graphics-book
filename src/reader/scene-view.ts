@@ -5,6 +5,18 @@ import { studySpec, localScene } from '../render/scenes.ts';
 import type { StudyState, StudySpec, ObjectState } from '../render/scenes.ts';
 import type { StudyOutput } from '../render/render-study.ts';
 import type { Vec3 } from '../math/vector.ts';
+import { StudyRenderer } from './render-client.ts';
+import type { RenderQuality } from './render-client.ts';
+import { compactActions } from './actions.ts';
+
+type SceneDisplay = 'image' | 'space' | 'split';
+export type SceneSnapshot = {
+  state: StudyState;
+  channel: string;
+  view: SceneDisplay;
+  selected: string;
+  probe?: [number, number];
+};
 
 const format = (value: number): string =>
   Number.isFinite(value) ? Number(value.toFixed(4)).toString() : '—';
@@ -33,10 +45,11 @@ export class SceneView {
   private probe: HTMLElement;
   private resize: ResizeObserver;
   private intersection: IntersectionObserver;
-  private worker?: Worker;
+  private renderClient: StudyRenderer;
   private frame?: StudyOutput;
-  private requestId = 0;
-  private timer = 0;
+  private dirty = true;
+  private quality: RenderQuality = 'preview';
+  private display: SceneDisplay = 'image';
   private raf = 0;
   private visible = false;
   private disposed = false;
@@ -52,19 +65,65 @@ export class SceneView {
     chapter: string,
     openSource: (path: string) => void,
     customSpec?: StudySpec,
+    saved?: SceneSnapshot,
   ) {
     this.host = host;
     this.spec = customSpec ?? studySpec(chapter);
-    this.state = structuredClone(this.spec.state);
+    this.state = structuredClone(saved?.state ?? this.spec.state);
+    this.channel = saved?.channel ?? 'color';
+    this.display = saved?.view ?? (chapter === '14' ? 'space' : 'image');
+    this.selected = saved?.selected ?? '';
+    this.probePixel = saved?.probe;
     host.className = 'scene-study';
-    host.innerHTML = `<header class="figure-heading"><div><span class="figure-kicker">${chapter} / 综合实验</span><h3>${this.spec.title}</h3></div><div class="figure-actions"><button data-action="source" title="阅读完整算法">〈/〉</button><button data-action="undo" title="撤销">↶</button><button data-action="reset" title="恢复场景与相机">↺</button><button data-action="full" title="全屏">⛶</button></div></header><div class="scene-toolbar"><div class="scene-tools" role="group" aria-label="物体工具"><button data-tool="translate" title="移动 G">移动</button><button data-tool="rotate" title="旋转 R">旋转</button><button data-tool="scale" title="缩放 S">缩放</button></div><div class="scene-projection" role="group" aria-label="投影"><button data-projection="perspective">透视</button><button data-projection="orthographic">正交</button></div><button data-action="save" title="下载当前成像 PNG">导出</button><button data-action="wire" aria-pressed="false">网格</button><button data-action="frame" title="聚焦所选物体 F">聚焦</button></div><div class="scene-layout"><div class="scene-viewports"><section class="scene-pane"><header><span>算法成像</span><small class="scene-status">等待视图</small></header><div class="scene-result-wrap"><canvas class="scene-result" aria-label="教学算法生成的图像，点击检查像素" tabindex="0"></canvas><i class="scene-crosshair" hidden></i></div><div class="scene-channels" role="group" aria-label="成像通道"><button data-channel="color">颜色</button><button data-channel="depth" title="灰度拉伸到当前可见深度范围；原始值见像素检查">深度</button><button data-channel="normal">法线</button><button data-channel="owner">图元</button></div></section><section class="scene-pane"><header><span>空间视图</span><small>同一场景与相机</small></header><div class="scene-editor" tabindex="0" aria-label="三维空间编辑器"></div><div class="scene-view-bottom"><span class="scene-selection"></span><span class="scene-camera-position"></span></div></section></div><aside class="scene-inspector"><details open class="scene-object-tree"><summary>场景</summary><div class="scene-objects"></div></details><div class="scene-controls"></div></aside></div><div class="scene-footer"><dl class="scene-stats"></dl><details class="scene-probe"><summary>像素检查</summary><div class="scene-probe-values">点击成像中的表面检查计算结果。</div></details><details class="scene-shortcuts"><summary>操作与快捷键</summary><p>拖动旋转视角，右键拖动平移，滚轮缩放。点击物体或控制点后拖动轴柄。G 移动，R 旋转，S 缩放，F 聚焦，Esc 取消选择。⌘/Ctrl Z 撤销。</p></details></div>`;
+    host.innerHTML = `
+      <header class="figure-heading"><div><span class="figure-kicker">${chapter} / 综合实验</span><h3>${this.spec.title}</h3></div>
+        <div class="figure-actions"><button data-action="source" title="阅读完整算法" aria-label="阅读完整算法">〈/〉</button><button data-action="undo" title="撤销" aria-label="撤销">↶</button><button data-action="reset" title="恢复场景与相机" aria-label="恢复场景与相机">↺</button><button data-action="save" title="下载完整图像" aria-label="导出 PNG" disabled>↓</button><button data-action="full" title="全屏" aria-label="全屏">⛶</button></div>
+      </header>
+      <div class="scene-toolbar">
+        <div class="scene-display" role="group" aria-label="视图"><button data-view="image">成像</button><button data-view="space">空间</button><button data-view="split">对照</button></div>
+        <div class="scene-projection" role="group" aria-label="投影"><button data-projection="perspective">透视</button><button data-projection="orthographic">正交</button></div>
+        <button data-action="parameters" class="scene-parameters-toggle" aria-expanded="true">参数</button>
+      </div>
+      <div class="scene-tools-bar"><div class="scene-tools" role="group" aria-label="物体工具"><button data-tool="translate" title="移动 G">移动</button><button data-tool="rotate" title="旋转 R">旋转</button><button data-tool="scale" title="缩放 S">缩放</button></div><button data-action="wire" aria-pressed="false">网格</button><button data-action="frame" title="聚焦所选物体 F">聚焦</button><span class="scene-selection"></span></div>
+      <div class="scene-layout">
+        <div class="scene-viewports">
+          <section class="scene-pane scene-image-pane"><header><span>算法成像</span><small class="scene-status" role="status">等待视图</small></header>
+            <div class="scene-result-wrap"><canvas class="scene-result" aria-label="拖动环绕相机，点击检查像素" tabindex="0"></canvas><i class="scene-crosshair" hidden></i></div>
+            <div class="scene-channels" role="group" aria-label="成像通道"><button data-channel="color">颜色</button><button data-channel="depth" title="灰度拉伸到当前可见深度范围；原始值见像素检查">深度</button><button data-channel="normal">法线</button><button data-channel="owner">图元</button></div>
+          </section>
+          <section class="scene-pane scene-space-pane"><header><span>空间视图</span><small>近似材质 · 几何编辑</small></header><div class="scene-editor" tabindex="0" aria-label="三维空间编辑器"></div><div class="scene-view-bottom"><span>相机</span><span class="scene-camera-position"></span></div></section>
+        </div>
+        <aside class="scene-inspector" aria-label="实验参数"><div class="scene-controls"></div><details class="scene-object-tree"><summary>场景物体</summary><div class="scene-objects"></div></details><details class="scene-advanced"><summary>更多参数与成像质量</summary><div class="scene-more-controls"></div></details></aside>
+      </div>
+      <div class="scene-footer"><details class="scene-probe"><summary>像素检查</summary><div class="scene-probe-values">点击成像中的表面检查计算结果。</div></details><details class="scene-diagnostics"><summary>计算详情</summary><dl class="scene-stats"></dl></details><details class="scene-shortcuts"><summary>操作与快捷键</summary><p>两种视图均可拖动环绕、右键平移、滚轮缩放。空间视图中选中物体后拖动轴柄；G 移动、R 旋转、S 缩放、F 聚焦、Esc 取消选择，⌘/Ctrl Z 撤销。拖动时显示低分辨率预览，停下后恢复完整成像。</p></details></div>`;
+
     this.result = host.querySelector('.scene-result')!;
     this.status = host.querySelector('.scene-status')!;
-    this.controls = host.querySelector('.scene-controls')!;
+    this.controls = host.querySelector('.scene-inspector')!;
     this.stats = host.querySelector('.scene-stats')!;
     this.objects = host.querySelector('.scene-objects')!;
     this.probe = host.querySelector('.scene-probe-values')!;
+    this.renderClient = new StudyRenderer(
+      (frame, quality, current) => {
+        this.frame = frame;
+        this.quality = quality;
+        this.dirty = quality !== 'final' || !current;
+        this.host.dataset.render = quality;
+        this.status.textContent =
+          quality === 'preview' ? `交互预览 · ${frame.width}²` : `${frame.width}² · 完整成像`;
+        this.host.querySelector<HTMLButtonElement>('[data-action="save"]')!.disabled =
+          quality !== 'final';
+        this.showFrame();
+        this.showStats();
+        this.showProbe();
+      },
+      (message) => {
+        this.status.textContent = message;
+        this.host.dataset.render = 'error';
+      },
+    );
     const editor = host.querySelector('.scene-editor') as HTMLElement;
+    compactActions(host, this.abort.signal);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     this.renderer.setClearColor('#f0efe6');
@@ -75,7 +134,7 @@ export class SceneView {
     this.light.position.set(-3, 4, 5);
     this.scene.add(this.light);
     const grid = new THREE.GridHelper(10, 20, '#a7b5a7', '#d4dbcd');
-    grid.position.y = chapter === '09' || chapter === '12' ? -0.002 : -1.5;
+    grid.position.y = chapter === '10' || chapter === '15' ? -0.002 : -1.5;
     this.scene.add(grid);
     this.camera = this.perspective;
     this.orbit = new OrbitControls(this.camera, this.renderer.domElement);
@@ -94,7 +153,7 @@ export class SceneView {
         mesh = this.meshes.get(this.selected);
       if (!object || !mesh) return;
       if (object.kind === 'light') mesh.position.y = Math.max(0.2, mesh.position.y);
-      if (chapter === '12' && object.kind === 'sphere') {
+      if (chapter === '15' && object.kind === 'sphere') {
         const s = Math.max(0.1, (mesh.scale.x + mesh.scale.y + mesh.scale.z) / 3);
         mesh.scale.setScalar(s);
       }
@@ -142,6 +201,17 @@ export class SceneView {
       this.scheduleRender();
     });
     on('[data-action="undo"]', () => this.restoreUndo());
+    on('[data-action="parameters"]', () => {
+      const hidden = host.classList.toggle('parameters-hidden');
+      host
+        .querySelector('[data-action="parameters"]')!
+        .setAttribute('aria-expanded', String(!hidden));
+    });
+    host.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => {
+      button.addEventListener('click', () => this.setView(button.dataset.view as SceneDisplay), {
+        signal,
+      });
+    });
     on('[data-action="full"]', () => {
       if (document.fullscreenElement) void document.exitFullscreen();
       else void host.requestFullscreen();
@@ -156,7 +226,7 @@ export class SceneView {
     });
     on('[data-action="frame"]', () => this.focus());
     on('[data-action="save"]', () => {
-      if (!this.frame) return;
+      if (!this.frame || this.quality !== 'final') return;
       const a = document.createElement('a');
       a.download = `graphics-${chapter}-${this.channel}.png`;
       a.href = this.result.toDataURL('image/png');
@@ -192,20 +262,27 @@ export class SceneView {
         { signal },
       ),
     );
+    let resultDown: [number, number] = [0, 0];
+    this.result.addEventListener(
+      'pointerdown',
+      (event) => {
+        resultDown = [event.clientX, event.clientY];
+        this.result.focus({ preventScroll: true });
+      },
+      { signal },
+    );
     this.result.addEventListener(
       'click',
       (event) => {
-        if (!this.frame) return;
+        if (
+          !this.frame ||
+          Math.hypot(event.clientX - resultDown[0], event.clientY - resultDown[1]) > 4
+        )
+          return;
         const r = this.result.getBoundingClientRect();
         this.probePixel = [
-          Math.min(
-            this.frame.height - 1,
-            Math.floor(((event.clientY - r.top) / r.height) * this.frame.height),
-          ),
-          Math.min(
-            this.frame.width - 1,
-            Math.floor(((event.clientX - r.left) / r.width) * this.frame.width),
-          ),
+          Math.max(0, Math.min(1, (event.clientY - r.top) / r.height)),
+          Math.max(0, Math.min(1, (event.clientX - r.left) / r.width)),
         ];
         this.showProbe();
         (host.querySelector('.scene-probe') as HTMLDetailsElement).open = true;
@@ -241,9 +318,14 @@ export class SceneView {
       },
       { signal },
     );
-    editor.addEventListener(
+    for (const surface of [this.result, this.renderer.domElement]) {
+      surface.addEventListener('pointerenter', () => this.connectCamera(surface), { signal });
+    }
+    host.addEventListener(
       'keydown',
       (event) => {
+        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement)
+          return;
         if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') {
           event.preventDefault();
           this.restoreUndo();
@@ -262,6 +344,7 @@ export class SceneView {
     this.restoreCamera();
     this.sync();
     this.setTool('translate');
+    this.setView(this.display);
     this.resize = new ResizeObserver(() => {
       const rect = editor.getBoundingClientRect();
       if (rect.width && rect.height) {
@@ -273,11 +356,27 @@ export class SceneView {
     this.intersection = new IntersectionObserver(
       (entries) => {
         this.visible = entries[0].isIntersecting;
-        if (this.visible && !this.frame) this.scheduleRender();
+        if (this.visible && this.dirty) this.scheduleRender();
+        if (!this.visible) this.renderClient.cancel();
       },
       { rootMargin: '150px' },
     );
     this.intersection.observe(host);
+  }
+  private connectCamera(surface: HTMLCanvasElement): void {
+    if (this.orbit.domElement === surface || this.gizmo.dragging) return;
+    this.orbit.disconnect();
+    this.orbit.connect(surface);
+  }
+  private setView(view: SceneDisplay): void {
+    this.display = view;
+    this.host.dataset.view = view;
+    this.host.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.view === view));
+    });
+    (this.host.querySelector('.scene-object-tree') as HTMLDetailsElement).open = view !== 'image';
+    this.connectCamera(view === 'image' ? this.result : this.renderer.domElement);
+    this.paint();
   }
   private remember(): void {
     this.undo.push(structuredClone(this.state));
@@ -294,6 +393,19 @@ export class SceneView {
   }
   private buildControls(): void {
     const fov = { key: 'fov', label: '垂直视场角', min: 15, max: 110, step: 1, unit: '°' };
+    const primary: Record<string, string[]> = {
+      '03': ['fov', 'near', 'far'],
+      '06': ['depthTest', 'reverse', 'bits'],
+      '07': ['normalMode', 'ks', 'exponent'],
+      '08': ['filter', 'correct', 'frequency'],
+      '09': ['environment', 'mapping', 'envAngle'],
+      '10': ['bias', 'pcf', 'shadowSize'],
+      '11': ['mode', 'depthTest', 'cull'],
+      '12': ['detail'],
+      '14': ['pair', 'continuity', 'detail'],
+      '15': ['bounces', 'mirrorA', 'mirrorB', 'specular'],
+    };
+    const geometryKeys = new Set(['detail', 'wave', 'pair', 'continuity', 'leftSpan', 'rightSpan']);
     for (const control of [fov, ...this.spec.controls]) {
       const group = document.createElement('div');
       group.className = 'figure-control';
@@ -313,7 +425,7 @@ export class SceneView {
             () => {
               this.remember();
               this.state.params[control.key] = option.value;
-              this.updateGeometry();
+              if (geometryKeys.has(control.key)) this.updateGeometry();
               this.sync();
               this.scheduleRender();
             },
@@ -335,6 +447,13 @@ export class SceneView {
         input.setAttribute('aria-label', control.label);
         input.addEventListener('pointerdown', () => this.remember(), { signal: this.abort.signal });
         input.addEventListener(
+          'keydown',
+          (event) => {
+            if (event.key.startsWith('Arrow')) this.remember();
+          },
+          { signal: this.abort.signal },
+        );
+        input.addEventListener(
           'input',
           () => {
             if (control.key === 'fov') {
@@ -342,7 +461,7 @@ export class SceneView {
               this.restoreCamera();
             } else {
               this.state.params[control.key] = Number(input.value);
-              this.updateGeometry();
+              if (geometryKeys.has(control.key)) this.updateGeometry();
             }
             this.sync();
             this.scheduleRender();
@@ -351,7 +470,13 @@ export class SceneView {
         );
         group.append(input);
       }
-      this.controls.append(group);
+      this.host
+        .querySelector(
+          (primary[this.state.chapter] ?? []).includes(control.key)
+            ? '.scene-controls'
+            : '.scene-more-controls',
+        )!
+        .append(group);
     }
   }
   private geometry(object: ObjectState): THREE.BufferGeometry {
@@ -394,9 +519,16 @@ export class SceneView {
         const button = document.createElement('button');
         button.textContent = object.label;
         button.dataset.object = object.key;
-        button.addEventListener('click', () => this.select(object.key), {
-          signal: this.abort.signal,
-        });
+        button.addEventListener(
+          'click',
+          () => {
+            this.setView('space');
+            this.select(object.key);
+          },
+          {
+            signal: this.abort.signal,
+          },
+        );
         this.objects.append(button);
       }
     }
@@ -454,12 +586,17 @@ export class SceneView {
       `相机 ${this.state.camera.eye.map((x) => x.toFixed(1)).join(' · ')}`;
   }
   private sync(): void {
-    for (const input of this.controls.querySelectorAll<HTMLInputElement>('input[data-param]'))
+    for (const input of this.controls.querySelectorAll<HTMLInputElement>('input[data-param]')) {
       input.value = String(
         input.dataset.param === 'fov'
           ? this.state.camera.fov
           : this.state.params[input.dataset.param!],
       );
+      input.style.setProperty(
+        '--range',
+        `${(100 * (Number(input.value) - Number(input.min))) / (Number(input.max) - Number(input.min))}%`,
+      );
+    }
     for (const out of this.controls.querySelectorAll<HTMLOutputElement>('output'))
       out.textContent = format(
         Number(
@@ -468,15 +605,23 @@ export class SceneView {
             : this.state.params[out.dataset.readout!],
         ),
       );
-    for (const button of this.host.querySelectorAll<HTMLButtonElement>('[data-param][data-value]'))
+    for (const button of this.host.querySelectorAll<HTMLButtonElement>(
+      '[data-param][data-value]',
+    )) {
       button.classList.toggle(
         'active',
         JSON.stringify(this.state.params[button.dataset.param!]) === button.dataset.value,
       );
-    for (const button of this.host.querySelectorAll<HTMLButtonElement>('[data-projection]'))
+      button.setAttribute('aria-pressed', String(button.classList.contains('active')));
+    }
+    for (const button of this.host.querySelectorAll<HTMLButtonElement>('[data-projection]')) {
       button.classList.toggle('active', button.dataset.projection === this.state.camera.projection);
-    for (const button of this.host.querySelectorAll<HTMLButtonElement>('[data-channel]'))
+      button.setAttribute('aria-pressed', String(button.classList.contains('active')));
+    }
+    for (const button of this.host.querySelectorAll<HTMLButtonElement>('[data-channel]')) {
       button.classList.toggle('active', button.dataset.channel === this.channel);
+      button.setAttribute('aria-pressed', String(button.classList.contains('active')));
+    }
   }
   private select(key: string): void {
     this.selected = key;
@@ -518,34 +663,12 @@ export class SceneView {
     });
   }
   private scheduleRender(): void {
+    this.dirty = true;
     if (!this.visible || this.disposed) return;
-    clearTimeout(this.timer);
-    this.status.textContent = '计算中…';
-    this.requestId++;
-    this.timer = window.setTimeout(() => {
-      // 新计算替代过时任务；Worker 终止不会影响页面事件或空间操作。
-      this.worker?.terminate();
-      this.worker = new Worker(new URL('../render/worker.ts', import.meta.url), { type: 'module' });
-      const id = this.requestId;
-      this.worker.onmessage = (
-        event: MessageEvent<{ id: number; frame?: StudyOutput; error?: string }>,
-      ) => {
-        if (event.data.id !== this.requestId || this.disposed) return;
-        if (event.data.error) {
-          this.status.textContent = event.data.error;
-          return;
-        }
-        this.frame = event.data.frame!;
-        this.status.textContent = `${this.frame.width}² · ${this.frame.stats['计算 / ms']} ms`;
-        this.showFrame();
-        this.showStats();
-        this.showProbe();
-      };
-      this.worker.onerror = (event) => {
-        this.status.textContent = event.message || '渲染失败';
-      };
-      this.worker.postMessage({ id, state: this.state });
-    }, 140);
+    this.status.textContent = '更新中…';
+    this.host.dataset.render = 'updating';
+    this.host.querySelector<HTMLButtonElement>('[data-action="save"]')!.disabled = true;
+    this.renderClient.update(this.state);
   }
   private showFrame(): void {
     const frame = this.frame;
@@ -607,8 +730,8 @@ export class SceneView {
   private showProbe(): void {
     const frame = this.frame;
     if (!frame || !this.probePixel) return;
-    const row = Math.min(frame.height - 1, this.probePixel[0]),
-      col = Math.min(frame.width - 1, this.probePixel[1]),
+    const row = Math.min(frame.height - 1, Math.floor(this.probePixel[0] * frame.height)),
+      col = Math.min(frame.width - 1, Math.floor(this.probePixel[1] * frame.width)),
       i = row * frame.width + col;
     const cross = this.host.querySelector('.scene-crosshair') as HTMLElement;
     cross.hidden = false;
@@ -630,11 +753,19 @@ export class SceneView {
       this.probe.append(line);
     }
   }
+  snapshot(): SceneSnapshot {
+    return {
+      state: structuredClone(this.state),
+      channel: this.channel,
+      view: this.display,
+      selected: this.selected,
+      probe: this.probePixel,
+    };
+  }
   dispose(): void {
     this.disposed = true;
-    clearTimeout(this.timer);
     cancelAnimationFrame(this.raf);
-    this.worker?.terminate();
+    this.renderClient.dispose();
     this.abort.abort();
     this.resize.disconnect();
     this.intersection.disconnect();

@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Euler, Matrix4 } from 'three';
-import { modelMatrix } from '../chapters/13-pipeline/core.ts';
-import { pixelFootprint } from '../chapters/07-textures/core.ts';
+import { modelMatrix } from '../chapters/11-pipeline/core.ts';
+import { pixelFootprint } from '../chapters/08-textures/core.ts';
 import {
   silhouette,
   pickSurface,
   project,
   implicit,
   analyticNormal,
-} from '../chapters/10-geometry/core.ts';
+} from '../chapters/12-geometry/core.ts';
 import { snapVertices } from '../chapters/04-barycentric/raster.ts';
 import { dot } from '../math/vector.ts';
 import type { Vec2, Vec3 } from '../math/vector.ts';
@@ -81,8 +81,8 @@ test('子像素量化使用最近偶数，含负数与半格', () => {
 
 test('环境背景按眼射线查询，与镜面使用同一个方向函数', async () => {
   const { studyRay } = await import('./render-study.ts');
-  const { analyticEnvironment } = await import('../chapters/14-texture-functions/core.ts');
-  const state = studySpec('14').state;
+  const { analyticEnvironment } = await import('../chapters/09-texture-functions/core.ts');
+  const state = studySpec('09').state;
   state.params.environment = 'direction';
   state.params.envAngle = 30;
   const frame = renderStudy(state, 32),

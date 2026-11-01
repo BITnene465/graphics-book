@@ -15,7 +15,7 @@ import {
   worldToLocal,
   twoLinkFK,
 } from './hierarchy.ts';
-import { project } from '../10-geometry/core.ts';
+import { project } from '../12-geometry/core.ts';
 
 const source = '/src/chapters/02-transforms/';
 const house: Vec2[] = [

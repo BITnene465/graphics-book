@@ -1,8 +1,15 @@
 import katex from 'katex';
 import type { FigureSpec, Params } from '../figures/spec.ts';
 import type { Frame, Bounds, Handle } from '../figures/drawing.ts';
+import { compactActions } from './actions.ts';
 
 const NS = 'http://www.w3.org/2000/svg';
+export type FigureSnapshot = {
+  params: Params;
+  progress: number;
+  views: [string, { zoom: number; x: number; y: number }][];
+  panel: string;
+};
 function svg<K extends keyof SVGElementTagNameMap>(
   tag: K,
   attributes: Record<string, string | number> = {},
@@ -29,7 +36,7 @@ export class FigureView {
   private params: Params;
   private progress = 1;
   private playing = false;
-  private visible = true;
+  private visible = false;
   private abort = new AbortController();
   private observer: IntersectionObserver;
   private resize: ResizeObserver;
@@ -45,18 +52,34 @@ export class FigureView {
   private views = new Map<string, { zoom: number; x: number; y: number }>();
   private undo: Params[] = [];
   private disposed = false;
+  private formulaText = '';
+  private panel = '';
+  private panelKeys = '';
 
-  constructor(host: HTMLElement, spec: FigureSpec, openSource: (path: string) => void) {
+  constructor(
+    host: HTMLElement,
+    spec: FigureSpec,
+    openSource: (path: string) => void,
+    saved?: FigureSnapshot,
+  ) {
     this.host = host;
     this.spec = spec;
-    this.params = structuredClone(spec.defaults);
+    this.params = structuredClone(saved?.params ?? spec.defaults);
+    this.progress = saved?.progress ?? 1;
+    this.views = new Map(saved?.views ?? []);
+    this.panel = saved?.panel ?? '';
     host.className = 'figure-study';
     host.innerHTML = `<header class="figure-heading"><div><span class="figure-kicker">${spec.chapter} / 交互研究</span><h3>${spec.title}</h3><p>${spec.subtitle}</p></div><div class="figure-actions"><button data-action="source" title="阅读计算源码">〈/〉</button><button data-action="undo" title="撤销">↶</button><button data-action="reset" title="恢复初始状态">↺</button><button data-action="fullscreen" title="全屏">⛶</button></div></header><div class="figure-layout"><div class="figure-stage" aria-label="${spec.title}"></div><aside class="figure-controls" aria-label="实验参数"></aside></div><div class="figure-timeline"><button data-action="play" aria-label="播放">▶</button><input type="range" min="0" max="1" step="0.001" value="1" aria-label="演示进度"><output>1.000</output></div><div class="figure-readout"><div class="figure-formula"></div><dl class="figure-metrics"></dl></div><p class="figure-error" role="status" hidden></p>`;
     this.stage = host.querySelector('.figure-stage')!;
+    compactActions(host, this.abort.signal);
     this.controls = host.querySelector('.figure-controls')!;
     this.metrics = host.querySelector('.figure-metrics')!;
     this.formula = host.querySelector('.figure-formula')!;
     this.time = host.querySelector('.figure-timeline input')!;
+    const panelTabs = document.createElement('nav');
+    panelTabs.className = 'figure-panel-tabs';
+    panelTabs.setAttribute('aria-label', '图解视图');
+    this.stage.before(panelTabs);
     const on = <K extends keyof HTMLElementEventMap>(
       el: HTMLElement,
       type: K,
@@ -148,23 +171,32 @@ export class FigureView {
     this.observer = new IntersectionObserver(
       (entries) => {
         this.visible = entries[0].isIntersecting;
-        if (this.visible) this.animate();
+        if (this.visible) {
+          this.schedule();
+          this.animate();
+        }
       },
       { rootMargin: '100px' },
     );
     this.observer.observe(host);
-    this.resize = new ResizeObserver(() => this.schedule());
+    this.resize = new ResizeObserver(() => {
+      if (this.visible) this.schedule();
+    });
     this.resize.observe(this.stage);
     this.sync();
-    this.draw();
   }
   private remember(): void {
     this.undo.push(structuredClone(this.params));
     if (this.undo.length > 30) this.undo.shift();
   }
   private sync(): void {
-    for (const input of this.controls.querySelectorAll<HTMLInputElement>('input[data-key]'))
+    for (const input of this.controls.querySelectorAll<HTMLInputElement>('input[data-key]')) {
       input.value = String(this.params[input.dataset.key!]);
+      input.style.setProperty(
+        '--range',
+        `${(100 * (Number(input.value) - Number(input.min))) / (Number(input.max) - Number(input.min))}%`,
+      );
+    }
     for (const button of this.controls.querySelectorAll<HTMLButtonElement>('button[data-key]')) {
       const selected = JSON.stringify(this.params[button.dataset.key!]) === button.dataset.value;
       button.classList.toggle('active', selected);
@@ -175,6 +207,7 @@ export class FigureView {
         this.controls.querySelector(`[data-readout="${control.key}"]`)!.textContent =
           `${pretty(this.params[control.key])}${control.unit ?? ''}`;
     this.time.value = String(this.progress);
+    this.time.style.setProperty('--range', `${100 * this.progress}%`);
     this.time.nextElementSibling!.textContent = this.progress.toFixed(3);
     const play = this.host.querySelector('[data-action="play"]')!;
     play.textContent = this.playing ? 'Ⅱ' : '▶';
@@ -196,7 +229,7 @@ export class FigureView {
     this.animation = requestAnimationFrame(tick);
   }
   private schedule(): void {
-    if (this.request || this.disposed) return;
+    if (this.request || this.disposed || !this.visible) return;
     this.request = requestAnimationFrame(() => {
       this.request = 0;
       this.draw();
@@ -211,6 +244,34 @@ export class FigureView {
         ? this.frame.panels
         : [{ key: '', bounds: this.frame.bounds, columns: 1 }];
       const next = new Set(panels.map((p) => p.key));
+      this.stage.classList.toggle('has-panels', panels.length > 1);
+      this.stage.dataset.panels = String(panels.length);
+      this.stage.dataset.many = String(panels.length > 3);
+      if (!next.has(this.panel)) this.panel = panels[0].key;
+      const keys = panels.map((p) => p.key).join('|');
+      if (keys !== this.panelKeys) {
+        this.panelKeys = keys;
+        const tabs = this.host.querySelector('.figure-panel-tabs')!;
+        tabs.replaceChildren(
+          ...panels
+            .filter(() => panels.length > 1)
+            .map((p) => {
+              const button = document.createElement('button');
+              button.textContent = p.key;
+              button.dataset.panel = p.key;
+              button.onclick = () => {
+                this.panel = p.key;
+                this.schedule();
+              };
+              return button;
+            }),
+        );
+      }
+      this.host
+        .querySelectorAll<HTMLButtonElement>('.figure-panel-tabs button')
+        .forEach((button) => {
+          button.setAttribute('aria-pressed', String(button.dataset.panel === this.panel));
+        });
       for (const child of this.stage.querySelectorAll<SVGSVGElement>('svg'))
         if (!next.has(child.dataset.panel!)) child.remove();
       for (const panel of panels) {
@@ -228,13 +289,21 @@ export class FigureView {
         const ratio = (panel.bounds[1] - panel.bounds[0]) / (panel.bounds[3] - panel.bounds[2]);
         canvas.style.aspectRatio = String(ratio);
         canvas.style.minWidth = '0';
+        canvas.dataset.active = String(panel.key === this.panel);
+      }
+      // 先完成网格布局，再按各面板的实际像素比例排版文字和手柄。
+      for (const panel of panels) {
+        const canvas = [...this.stage.querySelectorAll<SVGSVGElement>('svg')].find(
+          (el) => el.dataset.panel === panel.key,
+        )!;
         this.paint(canvas, panel.bounds, panel.key);
       }
-      this.stage.classList.toggle('has-panels', panels.length > 1);
-      this.stage.dataset.panels = String(panels.length);
-      this.formula.innerHTML = this.frame.formula
-        ? katex.renderToString(this.frame.formula, { throwOnError: false, displayMode: true })
-        : '';
+      if ((this.frame.formula ?? '') !== this.formulaText) {
+        this.formulaText = this.frame.formula ?? '';
+        this.formula.innerHTML = this.formulaText
+          ? katex.renderToString(this.formulaText, { throwOnError: false, displayMode: true })
+          : '';
+      }
       this.metrics.replaceChildren();
       for (const [key, value] of Object.entries(this.frame.values)) {
         const group = document.createElement('div'),
@@ -482,6 +551,14 @@ export class FigureView {
       this.params[handle.key] = value;
     }
     this.sync();
+  }
+  snapshot(): FigureSnapshot {
+    return {
+      params: structuredClone(this.params),
+      progress: this.progress,
+      views: [...this.views],
+      panel: this.panel,
+    };
   }
   dispose(): void {
     this.disposed = true;

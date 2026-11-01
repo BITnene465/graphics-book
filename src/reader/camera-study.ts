@@ -18,6 +18,7 @@ const NS = 'http://www.w3.org/2000/svg';
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const cameraIcon = `<svg viewBox="0 0 32 24" aria-hidden="true"><path d="M3 6h17v14H3zM20 10l9-5v16l-9-5M7 6V3h8v3"/></svg>`;
 
+export type CameraSnapshot = { params: CameraParams; explanation: boolean; code: boolean };
 export class CameraStudy {
   host: HTMLElement;
   params: CameraParams;
@@ -30,9 +31,9 @@ export class CameraStudy {
   frameRequest = 0;
   rayScale = 1;
   $: <T extends Element = HTMLElement>(selector: string) => T;
-  constructor(host: HTMLElement, openSource: () => void) {
+  constructor(host: HTMLElement, openSource: () => void, saved?: CameraSnapshot) {
     this.host = host;
-    this.params = structuredClone(defaults);
+    this.params = structuredClone(saved?.params ?? defaults);
     this.controller = new AbortController();
     host.className = 'camera-study';
     host.dataset.figure = 'camera-framing';
@@ -91,6 +92,8 @@ export class CameraStudy {
       </details>
       <p class="cs-error" role="alert" hidden></p>`;
     this.$ = <T extends Element = HTMLElement>(s: string) => host.querySelector<T>(s)!;
+    this.$<HTMLDetailsElement>('.cs-explanation').open = saved?.explanation ?? false;
+    this.$<HTMLDetailsElement>('.cs-code').open = saved?.code ?? false;
     const on: On = (node, event, fn) =>
       node.addEventListener(event, fn as EventListener, { signal: this.controller.signal });
     on(this.$('.cs-reset'), 'click', () => {
@@ -435,6 +438,13 @@ export class CameraStudy {
     this.$('.cs-play span').textContent = '▶';
   }
 
+  snapshot(): CameraSnapshot {
+    return {
+      params: structuredClone(this.params),
+      explanation: this.$<HTMLDetailsElement>('.cs-explanation').open,
+      code: this.$<HTMLDetailsElement>('.cs-code').open,
+    };
+  }
   dispose() {
     this.disposed = true;
     this.stop();

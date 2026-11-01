@@ -4,11 +4,11 @@ import type { StudySpec, StudyState } from '../render/scenes.ts';
 import { renderStudy } from '../render/render-study.ts';
 import type { StudyOutput } from '../render/render-study.ts';
 import { encodeRgba } from '../chapters/01-pixels/core.ts';
-import { rasterizeWorld, sceneMatrices, shadowQuery } from '../chapters/09-shadows/core.ts';
+import { rasterizeWorld, sceneMatrices, shadowQuery } from '../chapters/10-shadows/core.ts';
 import type { Vec3 } from '../math/vector.ts';
 
 export function capstoneSpec(): StudySpec {
-  const spec = studySpec('09');
+  const spec = studySpec('10');
   spec.title = '综合实践：一幅图像，两次可见性计算';
   spec.source = '/src/capstone/core.ts';
   spec.state.objects.find((o) => o.key === 'pillar')!.position = [-1, 0.8, -0.4];

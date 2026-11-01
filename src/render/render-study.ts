@@ -7,7 +7,7 @@ import { lookAt, perspective, orthographic } from '../chapters/03-camera/core.ts
 import { clipToScreen } from '../chapters/04-barycentric/raster.ts';
 import { barycentric } from '../chapters/04-barycentric/core.ts';
 import type { Triangle2 } from '../chapters/04-barycentric/core.ts';
-import { shade, lightAt } from '../chapters/06-lighting/core.ts';
+import { shade, lightAt } from '../chapters/07-lighting/core.ts';
 import {
   checkerTexture,
   buildMipmaps,
@@ -16,11 +16,11 @@ import {
   sampleAnisotropic,
   perspectiveJacobian,
   footprintMetrics,
-} from '../chapters/07-textures/core.ts';
-import { rasterizeWorld, sceneMatrices, shadowQuery } from '../chapters/09-shadows/core.ts';
-import { cameraRay, trace, reflect } from '../chapters/12-rays/core.ts';
-import type { RayScene } from '../chapters/12-rays/core.ts';
-import { renderFrame, vertexStage, fragmentStage } from '../chapters/13-pipeline/core.ts';
+} from '../chapters/08-textures/core.ts';
+import { rasterizeWorld, sceneMatrices, shadowQuery } from '../chapters/10-shadows/core.ts';
+import { cameraRay, trace, reflect } from '../chapters/15-rays/core.ts';
+import type { RayScene } from '../chapters/15-rays/core.ts';
+import { renderFrame, vertexStage, fragmentStage } from '../chapters/11-pipeline/core.ts';
 import {
   analyticEnvironment,
   buildLatlong,
@@ -29,7 +29,7 @@ import {
   sampleCubemap,
   directionToLatlong,
   environmentLocalDirection,
-} from '../chapters/14-texture-functions/core.ts';
+} from '../chapters/09-texture-functions/core.ts';
 import { encodeRgba } from '../chapters/01-pixels/core.ts';
 import { unit } from '../chapters/02-transforms/spatial.ts';
 
@@ -85,7 +85,7 @@ export function renderStudy(
     light =
       state.objects.find((o) => o.kind === 'light')?.position ??
       ([Number(params.lightX), Number(params.lightY), Number(params.lightZ)] as Vec3);
-  if (chapter === '12' && params.visibility !== 'raster') {
+  if (chapter === '15' && params.visibility !== 'raster') {
     const scene = rayScene(state),
       color = new Float64Array(size * size * 3),
       depth = new Float64Array(size * size).fill(Infinity),
@@ -138,11 +138,11 @@ export function renderStudy(
       ? perspective(camera.fov, 1, near, far)
       : orthographic(height, 1, near, far);
   const tex =
-      chapter === '07'
+      chapter === '08'
         ? checkerTexture(Number(params.textureSize), Number(params.frequency))
         : null,
     mips = tex ? buildMipmaps(tex) : null;
-  const stages = chapter === '07' ? vertexStage(scene, identity(4), view, projection) : null;
+  const stages = chapter === '08' ? vertexStage(scene, identity(4), view, projection) : null;
   const textureTriangles = stages
     ? scene.faces.map((face) => {
         const vertices = face.map((i) => stages[i]);
@@ -161,7 +161,7 @@ export function renderStudy(
     : null;
   let shadow: ReturnType<typeof rasterizeWorld> | null = null,
     lightVP: number[][] | null = null;
-  if (chapter === '09') {
+  if (chapter === '10') {
     lightVP = sceneMatrices(light).lightVP;
     shadow = rasterizeWorld(
       scene.faces.map((face) => face.map((i) => scene.vertices[i])),
@@ -170,7 +170,7 @@ export function renderStudy(
     );
   }
   const env =
-    chapter === '14' && params.mapping === 'latlong'
+    chapter === '09' && params.mapping === 'latlong'
       ? buildLatlong(
           Number(params.mapSize) * 2,
           Number(params.mapSize),
@@ -179,7 +179,7 @@ export function renderStudy(
         )
       : null;
   const cube =
-    chapter === '14' && params.mapping === 'cube'
+    chapter === '09' && params.mapping === 'cube'
       ? buildCubemap(Number(params.mapSize), 0, params.environment as 'studio' | 'direction')
       : null;
   const environment = (worldDirection: Vec3): Vec3 => {
@@ -204,8 +204,8 @@ export function renderStudy(
     perspectiveCorrect: params.correct !== false,
     depthBits: Number(params.bits) > 0 ? Number(params.bits) : null,
     fragment: (f) => {
-      if (chapter === '05') return f.color;
-      if (chapter === '07' && tex && mips) {
+      if (chapter === '06') return f.color;
+      if (chapter === '08' && tex && mips) {
         if (params.filter === 'nearest' || params.filter === 'bilinear')
           return sampleTexture(tex, f.uv, params.filter);
         const tri = textureTriangles?.[f.face];
@@ -223,7 +223,7 @@ export function renderStudy(
           ? sampleTrilinear(mips, f.uv, metrics.lodIsotropic)
           : sampleAnisotropic(mips, f.uv, j, Number(params.lodBias), Number(params.anisotropy));
       }
-      if (chapter === '09' && shadow && lightVP) {
+      if (chapter === '10' && shadow && lightVP) {
         const q = shadowQuery(
             f.world,
             lightVP,
@@ -241,10 +241,10 @@ export function renderStudy(
               : 1;
         return f.color.map((c) => c * checker * (0.16 + 0.84 * diffuse * q.visibility)) as Vec3;
       }
-      if (chapter === '14') {
+      if (chapter === '09') {
         return environment(reflect(unit(sub(f.world, eye) as Vec3), f.normal));
       }
-      if (chapter === '13')
+      if (chapter === '11')
         return fragmentStage(f, eye, light, params.mode as 'lit' | 'checker' | 'uv' | 'normal');
       const l = lightAt(f.world, light, true, 40);
       return shade(f.normal, l.direction, sub(eye, f.world) as Vec3, {
@@ -256,7 +256,7 @@ export function renderStudy(
       }).total;
     },
   });
-  if (chapter === '14') {
+  if (chapter === '09') {
     for (let row = 0; row < size; row++)
       for (let col = 0; col < size; col++) {
         const i = row * size + col;

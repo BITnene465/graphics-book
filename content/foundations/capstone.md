@@ -12,12 +12,12 @@
 
 | 数据流 | 对应实现 | 需要检查的约定 |
 | --- | --- | --- |
-| 椭球参数 → 顶点与面 | [10 · makeMesh](/src/chapters/10-geometry/core.ts) | 经线闭合，极点不重复；法线来自隐式梯度 |
+| 椭球参数 → 顶点与面 | [12 · makeMesh](/src/chapters/12-geometry/core.ts) | 经线闭合，极点不重复；法线来自隐式梯度 |
 | 物体 → 世界几何 | [场景组合](/src/render/scenes.ts) | 点使用模型矩阵，法线使用逆转置 |
 | 世界 → 齐次裁剪空间 | [03 · lookAt / perspective](/src/chapters/03-camera/core.ts) | 列向量语义，先视图变换再投影 |
 | 裁剪 → 像素覆盖 | [04 · raster](/src/chapters/04-barycentric/raster.ts) | 先裁剪再除 w；共享边只归属一次 |
-| 片元 → 可见表面 | [13 · renderFrame](/src/chapters/13-pipeline/core.ts) | 深度不做二次校正，普通属性需透视恢复 |
-| 世界点 → 光源可见率 | [09 · shadowQuery](/src/chapters/09-shadows/core.ts) | 先比较深度，再平均比较结果 |
+| 片元 → 可见表面 | [11 · renderFrame](/src/chapters/11-pipeline/core.ts) | 深度不做二次校正，普通属性需透视恢复 |
+| 世界点 → 光源可见率 | [10 · shadowQuery](/src/chapters/10-shadows/core.ts) | 先比较深度，再平均比较结果 |
 | 线性颜色 → 显示像素 | [01 · encodeRgba](/src/chapters/01-pixels/core.ts) | 光照与采样在线性域完成，最后编码 |
 
 算法成像由这些 TypeScript 函数在 Web Worker 内计算。空间视图用 Three.js 提供相机与物体操作；两者共享几何和相机，但空间视图的近似材质不承担教学数值验证。
@@ -51,7 +51,7 @@ npm run render -- --size 384 --samples 2 --out outputs/capstone-4spp
 
 1. **可见性与提交次序。** 保持几何与相机不动，设置 `state.params.reverse = true`，比较深度测试下的输出。非平局像素应不变；深度完全相等时应按严格小于规则保留先到者。
 2. **阴影偏移与过滤。** 将 PCF 改为硬阴影，再逐渐增加偏移。辨认自遮挡与接触阴影脱离的不同表现。PCF 平滑深度比较的结果，并没有模拟面光源。
-3. **线性域与显示域。** 对同一组样本，分别平均线性值和显示编码值。用第 01 章的黑白各半手算作为独立参照，不能仅凭画面“看起来平滑”判断正确性。
+3. **线性域与显示域。** 对同一组样本，分别平均线性值和显示编码值。用[第 01 章](?chapter=pixels)的黑白各半手算作为独立参照，不能仅凭画面“看起来平滑”判断正确性。
 
 `src/capstone/core.test.ts` 检查实际像素回读、提交次序，以及固定输出尺寸的线性平均。运行 `npm test` 可复现这些检查；它们证明所列性质，不能替代对任意场景的数值分析。
 

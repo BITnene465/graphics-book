@@ -1,11 +1,11 @@
 import type { Vec3 } from '../math/vector.ts';
 import { matVec } from '../math/matrix.ts';
-import { modelMatrix, flatScene, gridScene } from '../chapters/13-pipeline/core.ts';
-import type { Scene } from '../chapters/13-pipeline/core.ts';
-import { transformNormals } from '../chapters/06-lighting/core.ts';
-import { makeMesh, analyticNormal } from '../chapters/10-geometry/core.ts';
-import { defaultControl, patchMesh, stitchPatches } from '../chapters/15-surfaces/core.ts';
-import type { Continuity } from '../chapters/11-bezier/splines.ts';
+import { modelMatrix, flatScene, gridScene } from '../chapters/11-pipeline/core.ts';
+import type { Scene } from '../chapters/11-pipeline/core.ts';
+import { transformNormals } from '../chapters/07-lighting/core.ts';
+import { makeMesh, analyticNormal } from '../chapters/12-geometry/core.ts';
+import { defaultControl, patchMesh, stitchPatches } from '../chapters/14-surfaces/core.ts';
+import type { Continuity } from '../chapters/13-bezier/splines.ts';
 import { slider, choice } from '../figures/spec.ts';
 import type { Control, Params } from '../figures/spec.ts';
 
@@ -51,7 +51,7 @@ const object = (
   rotation: [0, 0, 0],
   editable: true,
 });
-export const sceneChapters = new Set(['03', '05', '06', '07', '09', '10', '12', '13', '14', '15']);
+export const sceneChapters = new Set(['03', '06', '07', '08', '10', '12', '15', '11', '09', '14']);
 export function studySpec(chapter: string): StudySpec {
   const camera: CameraState = {
       eye: [3, 2, 5],
@@ -74,9 +74,9 @@ export function studySpec(chapter: string): StudySpec {
     params.near = 0.1;
     params.far = 40;
     controls.push(slider('near', '近平面', 0.01, 3, 0.01), slider('far', '远平面', 5, 100, 1));
-  } else if (chapter === '05') {
+  } else if (chapter === '06') {
     title = '相交表面的可见性';
-    source = '05-depth/core.ts';
+    source = '06-depth/core.ts';
     const a = object('a', '斜面 A', 'plane', [-0.15, 0, 0], [1.5, 1.1, 1], [0.1, 0.4, 0.65]),
       b = object('b', '斜面 B', 'plane', [0.15, 0, 0], [1.5, 1.1, 1]);
     a.rotation = [0, 35, 0];
@@ -102,16 +102,16 @@ export function studySpec(chapter: string): StudySpec {
       ]),
     );
     camera.eye = [0, 0, 5];
-  } else if (chapter === '06' || chapter === '10') {
-    title = chapter === '06' ? '光照与非均匀缩放' : '从解析曲面到三角网格';
-    source = chapter === '06' ? '06-lighting/core.ts' : '10-geometry/core.ts';
+  } else if (chapter === '07' || chapter === '12') {
+    title = chapter === '07' ? '光照与非均匀缩放' : '从解析曲面到三角网格';
+    source = chapter === '07' ? '07-lighting/core.ts' : '12-geometry/core.ts';
     objects.push(object('surface', '椭球', 'sphere', [0, 0, 0], [1.3, 0.85, 1]));
     params.detail = 16;
     params.exponent = 64;
     params.normalMode = 'correct';
     params.ks = 0.35;
     controls.push(slider('detail', '纬向分段', 3, 64, 1));
-    if (chapter === '06')
+    if (chapter === '07')
       controls.push(
         slider('exponent', '高光指数', 1, 512, 1),
         slider('ks', '高光系数', 0, 1, 0.01),
@@ -120,9 +120,9 @@ export function studySpec(chapter: string): StudySpec {
           ['wrong', '错误对照'],
         ]),
       );
-  } else if (chapter === '07') {
+  } else if (chapter === '08') {
     title = '倾斜平面上的纹理';
-    source = '07-textures/core.ts';
+    source = '08-textures/core.ts';
     const plane = object('surface', '纹理平面', 'plane', [0, 0, 0], [1.7, 1.2, 1], [1, 1, 1]);
     plane.rotation = [-45, 0, 0];
     objects.push(plane);
@@ -153,9 +153,9 @@ export function studySpec(chapter: string): StudySpec {
       ]),
     );
     camera.eye = [0, 1, 4.5];
-  } else if (chapter === '09') {
+  } else if (chapter === '10') {
     title = '光源看到的深度与相机看到的表面';
-    source = '09-shadows/core.ts';
+    source = '10-shadows/core.ts';
     objects.push(
       object('pillar', '立方柱', 'box', [0, 0.8, 0], [0.55, 0.8, 0.55], [0.63, 0.25, 0.1]),
       {
@@ -187,9 +187,9 @@ export function studySpec(chapter: string): StudySpec {
     );
     camera.eye = [6, 5, 7];
     camera.target = [0, 0.55, 0];
-  } else if (chapter === '12') {
+  } else if (chapter === '15') {
     title = '光线如何在场景中传播';
-    source = '12-rays/core.ts';
+    source = '15-rays/core.ts';
     objects.push(
       {
         ...object('a', '球 A', 'sphere', [-0.95, 0.8, 0], [0.8, 0.8, 0.8], [0.16, 0.34, 0.43]),
@@ -231,9 +231,9 @@ export function studySpec(chapter: string): StudySpec {
     camera.eye = [4, 2.5, 6];
     camera.target = [0, 0.65, 0];
     camera.fov = 42;
-  } else if (chapter === '13') {
+  } else if (chapter === '11') {
     title = '一帧图像的完整生成过程';
-    source = '13-pipeline/core.ts';
+    source = '11-pipeline/core.ts';
     objects.push(object('model', '双层网格', 'grid'));
     params.detail = 8;
     params.wave = 0.2;
@@ -268,9 +268,9 @@ export function studySpec(chapter: string): StudySpec {
         [true, '后层先'],
       ]),
     );
-  } else if (chapter === '14') {
+  } else if (chapter === '09') {
     title = '按反射方向查询环境';
-    source = '14-texture-functions/core.ts';
+    source = '09-texture-functions/core.ts';
     objects.push(object('sphere', '镜面球', 'sphere'));
     params.environment = 'studio';
     params.mapping = 'analytic';
@@ -297,9 +297,9 @@ export function studySpec(chapter: string): StudySpec {
     );
     camera.eye = [3, 1.4, 4];
     camera.fov = 42;
-  } else if (chapter === '15') {
+  } else if (chapter === '14') {
     title = '直接编辑三维控制网';
-    source = '15-surfaces/core.ts';
+    source = '14-surfaces/core.ts';
     objects.push({ ...object('patch', 'Bézier 曲面', 'patch'), editable: false });
     defaultControl()
       .flat()
@@ -338,7 +338,7 @@ export function studySpec(chapter: string): StudySpec {
     camera.eye = [3, 3, 5];
     camera.fov = 42;
   } else throw new RangeError('此章没有三维综合演示');
-  if (['06', '09', '12', '13', '15'].includes(chapter))
+  if (['07', '10', '15', '11', '14'].includes(chapter))
     objects.push(
       object(
         'light',

@@ -12,40 +12,76 @@
     <title>从像素到光线 · 图形学交互书</title>
     <script type="module" src="/src/reader/main.ts"></script>
   </head>
-  <body>
+  <body class="navigation-collapsed">
+    <a class="skip-link" href="#lesson">跳到正文</a>
     <header class="book-topbar">
       <button
         id="toggle-navigation"
         class="icon-button"
         aria-label="收起或展开目录"
-        aria-expanded="true"
+        aria-controls="navigation"
+        aria-expanded="false"
       >
         ☰
       </button>
-      <a class="book-brand" href="?chapter=01"
-        ><span class="book-emblem">◇</span><span>图形学<small>一本可以动手的书</small></span></a
+      <a class="book-brand" href="?chapter=pixels"
+        ><span class="book-emblem">◇</span
+        ><span>从像素到光线<small>计算机图形学交互教材</small></span></a
       >
-      <span class="book-subtitle">从像素到光线 <span>·</span> 计算机图形学基础</span>
-      <button id="jump-demo" class="text-button">本章演示 ↓</button>
+      <button id="section-jump" class="reading-context" title="打开本章目录">
+        <small id="chapter-context"></small><span id="section-context">本章导读</span>
+      </button>
+      <div class="reading-actions">
+        <details class="type-settings">
+          <summary aria-label="阅读字号">Aa</summary>
+          <div>
+            <span>正文字号</span><button data-font="16" aria-label="标准字号">标准</button
+            ><button data-font="18" aria-label="大字号">较大</button
+            ><button data-font="20" aria-label="更大字号">更大</button>
+          </div>
+        </details>
+        <button id="focus-reading" class="text-button" aria-pressed="false">专注阅读</button>
+      </div>
+      <i id="top-progress" aria-hidden="true"></i>
     </header>
-    <aside class="book-sidebar" id="navigation" aria-label="章节目录">
+    <button id="navigation-scrim" aria-label="关闭目录" hidden></button>
+    <aside class="book-sidebar" id="navigation" aria-label="阅读目录" inert>
       <div class="sidebar-heading">
         <small>COMPUTER GRAPHICS <span>VOL. 01</span></small
         ><strong>从像素到光线</strong>
       </div>
-      <nav id="chapter-list"></nav>
+      <div class="sidebar-tabs" role="tablist" aria-label="目录范围">
+        <button
+          role="tab"
+          data-directory="book"
+          class="active"
+          aria-selected="true"
+          aria-controls="chapter-list"
+        >
+          全书</button
+        ><button
+          role="tab"
+          data-directory="section"
+          aria-selected="false"
+          aria-controls="section-list"
+        >
+          本章
+        </button>
+      </div>
+      <div id="outline-heading" hidden></div>
+      <nav id="chapter-list" aria-label="全书章节"></nav>
+      <nav id="section-list" aria-label="本章小节" hidden></nav>
       <details class="appendices">
         <summary>附录与综合实践</summary>
         <div id="appendix-list"></div>
       </details>
       <div class="reading-progress">
-        <span>阅读位置</span>
         <div><i id="reading-fill"></i></div>
         <small id="reading-label"></small>
       </div>
     </aside>
-    <main id="main"><article id="lesson" class="prose" aria-live="polite"></article></main>
-    <dialog id="source-dialog">
+    <main id="main"><article id="lesson" class="prose" tabindex="-1"></article></main>
+    <dialog id="source-dialog" aria-labelledby="source-title">
       <header>
         <div>
           <small>教学算法 · TypeScript</small>
@@ -53,7 +89,7 @@
         </div>
         <button id="close-source" class="icon-button" aria-label="关闭源码">×</button>
       </header>
-      <nav id="source-tabs"></nav>
+      <nav id="source-tabs" aria-label="源码文件"></nav>
       <pre><code id="source-code" class="language-typescript"></code></pre>
       <footer>
         <button id="download-source" class="text-button">下载当前文件 ↓</button

@@ -2,12 +2,16 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import MarkdownIt from 'markdown-it';
 import { katex } from '@mdit/plugin-katex';
+import { chapters, chapterKey } from '../src/reader/catalog.ts';
 const markdown = new MarkdownIt({ html: true }).use(katex, { throwOnError: false, trust: false });
 const walk = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? walk(`${dir}/${e.name}`) : e.name.endsWith('.md') ? [`${dir}/${e.name}`] : [],
   );
 const issues = [];
+if (chapters.some((chapter, i) => chapter.id !== String(i + 1).padStart(2, '0')))
+  issues.push('章节编号必须按阅读顺序连续');
+const chapterKeys = new Map(chapters.map((chapter) => [chapterKey(chapter), chapter]));
 for (const file of walk('content')) {
   const source = readFileSync(file, 'utf8'),
     html = markdown.render(source);
@@ -17,8 +21,13 @@ for (const file of walk('content')) {
   for (const include of source.matchAll(/\[\[include:([^\]]+)\]\]/g))
     if (!existsSync(resolve(dirname(file), include[1]))) issues.push(`${file}: 缺少 ${include[1]}`);
   const slug = file.match(/foundations\/(\d\d-[^/]+)\//)?.[1];
+  if (slug && file.endsWith('/lesson.md') && !source.startsWith(`# ${slug.slice(0, 2)} ·`))
+    issues.push(`${file}: 标题章号与目录不一致`);
+  for (const match of source.matchAll(/\[(?:第\s*)?(\d\d)[^\]]*\]\(\?chapter=([\w-]+)\)/g))
+    if (chapterKeys.get(match[2])?.id !== match[1])
+      issues.push(`${file}: 章节引用编号 ${match[0]}`);
   const visit = (tokens) => {
-    for (const token of tokens) {
+    for (const [index, token] of tokens.entries()) {
       if (token.type === 'link_open' || token.type === 'image') {
         const href = token.attrGet(token.type === 'image' ? 'src' : 'href');
         if (!href || /^(https?:|mailto:|#)/.test(href)) continue;
@@ -27,10 +36,13 @@ for (const file of walk('content')) {
           const chapter = q.get('chapter'),
             appendix = q.get('appendix');
           if (
-            (chapter && !/^(0[1-9]|1[0-5])$/.test(chapter)) ||
+            (chapter && !chapterKeys.has(chapter)) ||
             (appendix && !['math', 'glossary', 'capstone', 'reading'].includes(appendix))
           )
             issues.push(`${file}: 路由 ${href}`);
+          const labelNumber = tokens[index + 1]?.content?.match(/^(?:第\s*)?(\d\d)(?:\s|$)/)?.[1];
+          if (chapter && labelNumber && chapterKeys.get(chapter)?.id !== labelNumber)
+            issues.push(`${file}: 链接显示第 ${labelNumber} 章，但指向 ${href}`);
           continue;
         }
         const path = href.startsWith('/src/')

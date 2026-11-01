@@ -29,14 +29,14 @@ test('改变相机或物体必须改变正式图像', () => {
   assert.notDeepEqual(b.pixels, c.pixels);
 });
 test('正交投影与透视投影在完整演示中不同', () => {
-  const state = studySpec('12').state,
+  const state = studySpec('15').state,
     a = renderStudy(state, 32);
   state.camera.projection = 'orthographic';
   const b = renderStudy(state, 32);
   assert.notDeepEqual(a.pixels, b.pixels);
 });
 test('材质参数改变光线追踪颜色，但不改变首次可见表面', () => {
-  const state = studySpec('12').state;
+  const state = studySpec('15').state;
   state.params.mirrorA = 0;
   const matte = renderStudy(state, 48);
   state.params.mirrorA = 0.95;

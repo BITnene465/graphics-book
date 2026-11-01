@@ -1,8 +1,8 @@
 import { Drawing, palette, circle } from './drawing.ts';
 import type { Vec2, Vec3 } from '../math/vector.ts';
 import { linearToSrgb, encodeRgba } from '../chapters/01-pixels/core.ts';
-import type { Texture } from '../chapters/07-textures/core.ts';
-import { project } from '../chapters/10-geometry/core.ts';
+import type { Texture } from '../chapters/08-textures/core.ts';
+import { project } from '../chapters/12-geometry/core.ts';
 
 export const rgb = (linear: number[]): string =>
   `rgb(${linear.map((x) => Math.round(linearToSrgb(x) * 255)).join(' ')})`;
