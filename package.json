@@ -1,0 +1,42 @@
+{
+  "name": "graphics-book",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "一本可以直接操作的计算机图形学教材，算法与演示均使用 TypeScript。",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.mjs",
+    "check": "npm test && npm run check:content && npm run build",
+    "exercise": "node scripts/exercise.mjs",
+    "render": "node --experimental-strip-types src/capstone/cli.ts",
+    "check:content": "node scripts/content-check.mjs",
+    "format": "prettier --write src scripts index.html vite.config.ts tsconfig.json package.json",
+    "prebuild": "node scripts/notices.mjs",
+    "start": "npm run dev -- --open",
+    "format:check": "prettier --check src scripts index.html vite.config.ts tsconfig.json package.json"
+  },
+  "dependencies": {
+    "@mdit/plugin-katex": "1.1.4",
+    "katex": "0.19.1",
+    "markdown-it": "15.0.3",
+    "prismjs": "^1.30.0",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.0",
+    "@types/markdown-it": "^14.1.0",
+    "@types/node": "^26.0.0",
+    "@types/prismjs": "^1.26.0",
+    "@types/three": "^0.187.0",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  }
+}

@@ -1,0 +1,813 @@
+/* One editorial illustration: colour identifies a quantity across all views. */
+.prose > .camera-study.camera-study {
+  max-width: 1040px;
+  margin: 32px auto 40px;
+  padding: 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: #394e52;
+  background: #fcfbf7;
+  border: 1px solid #d9dcd5;
+  border-radius: 8px;
+  overflow: hidden;
+  --cs-front: #237e79;
+  --cs-back: #a86e24;
+  --cs-serif: 'Iowan Old Style', 'Songti SC', 'Noto Serif CJK SC', Georgia, serif;
+}
+.camera-study *,
+.camera-study *::before,
+.camera-study *::after {
+  box-sizing: border-box;
+}
+.camera-study [hidden] {
+  display: none !important;
+}
+.camera-study button {
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+.camera-study button:focus-visible,
+.cs-rail:focus-visible,
+.camera-study summary:focus-visible {
+  outline: 2px solid #237e79;
+  outline-offset: 4px;
+}
+.cs-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 28px 20px;
+  gap: 12px;
+}
+.cs-kicker {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #657674;
+}
+.cs-kicker > span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+.prose .cs-heading h3 {
+  font-family: var(--cs-serif);
+  font-size: 25px;
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  margin: 6px 0 0;
+  color: #243f43;
+}
+.cs-reset {
+  border: 1px solid #d6dcd5;
+  border-radius: 50%;
+  background: transparent;
+  width: 34px;
+  height: 34px;
+  font-size: 21px !important;
+  flex-shrink: 0;
+}
+.cs-reset:hover {
+  background: #eaf0ea;
+}
+.cs-scene {
+  position: relative;
+  background: #f3efe6;
+  cursor: ew-resize;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+.cs-scene.is-dragging {
+  cursor: grabbing;
+}
+.cs-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.8;
+  overflow: hidden;
+}
+.cs-scene-note {
+  position: absolute;
+  top: 19px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #62736f;
+  pointer-events: none;
+}
+.cs-live-dot {
+  width: 5px;
+  height: 5px;
+  background: #237e79;
+  border-radius: 50%;
+}
+.cs-framing-note {
+  padding-left: 12px;
+  margin-left: 4px;
+  border-left: 1px solid #c8cbbf;
+}
+.cs-object-label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transform: translate(-50%, -50%);
+  color: var(--cs-front);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cs-object-label span {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.cs-back-label {
+  color: var(--cs-back);
+}
+.cs-drag-hint {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #69736b;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.cs-has-interacted .cs-drag-hint {
+  opacity: 0;
+}
+.cs-measurements {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid #dcded6;
+  border-bottom: 1px solid #dcded6;
+  padding: 18px 28px;
+  gap: 20px;
+}
+.cs-metric {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+.cs-metric + .cs-metric {
+  border-left: 1px solid #dcded6;
+  padding-left: 24px;
+}
+.cs-front {
+  color: var(--cs-front);
+}
+.cs-back {
+  color: var(--cs-back);
+}
+.cs-metric > span {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.cs-metric b {
+  font-family: var(--mono);
+  margin-right: 5px;
+}
+.cs-metric strong {
+  font-family: var(--mono);
+  font-size: 23px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.cs-metric small {
+  grid-column: 1 / -1;
+  color: #8b938c;
+  font-size: 10px;
+  text-align: right;
+}
+.cs-motion {
+  display: grid;
+  grid-template-columns: 36px 1fr 122px;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 28px 6px;
+}
+.cs-play {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #cbd4cc;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 12px !important;
+}
+.cs-play:hover,
+.cs-play[aria-pressed='true'] {
+  background: #e3ede5;
+  border-color: #91aaa0;
+}
+.cs-play span {
+  line-height: 1;
+}
+.cs-rail-wrap {
+  min-width: 0;
+}
+.cs-rail-heading {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #809086;
+}
+.cs-rail-heading b {
+  color: #394e52;
+  font-family: var(--mono);
+  font-size: 11px;
+  margin-left: 7px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.cs-rail {
+  position: relative;
+  height: 46px;
+  cursor: ew-resize;
+  touch-action: none;
+  margin: 2px 12px 0;
+}
+.cs-rail-line {
+  position: absolute;
+  top: 24px;
+  width: 100%;
+  height: 1px;
+  background: #a8b6ac;
+}
+.cs-rail-ticks {
+  position: absolute;
+  top: 22px;
+  width: 100%;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    #b7c4ba 0,
+    #b7c4ba 1px,
+    transparent 1px,
+    transparent calc(100% / 12)
+  );
+}
+.cs-camera {
+  position: absolute;
+  top: 4px;
+  left: 76.9%;
+  transform: translateX(-50%);
+  width: 38px;
+  height: 34px;
+  padding: 4px;
+  background: #fcfbf7;
+  color: #315b5c;
+}
+.cs-camera svg {
+  width: 28px;
+  height: 24px;
+  fill: #e5eee7;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.cs-lens {
+  padding-left: 24px;
+  border-left: 1px solid #dcded6;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.cs-lens > span {
+  font-size: 10px;
+  color: #7c8b81;
+}
+.cs-lens i {
+  margin-left: 4px;
+  font-family: Georgia, serif;
+}
+.cs-lens strong {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 400;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cs-lens .cs-linked {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.cs-bottom-bar {
+  padding: 0 28px 18px 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cs-presets {
+  display: flex;
+  gap: 8px;
+}
+.cs-presets button,
+.cs-mode,
+.cs-source {
+  background: transparent;
+  border: 0;
+  padding: 5px 0;
+  font-size: 11px !important;
+}
+.cs-presets button {
+  padding: 3px 10px;
+  border: 1px solid #d7ddd4;
+  border-radius: 3px;
+  color: #61796c;
+}
+.cs-presets button:hover {
+  border-color: #6f9689;
+  background: #eaf0e9;
+}
+.cs-mode:hover,
+.cs-source:hover {
+  color: #237e79;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.cs-mode span {
+  margin-left: 6px;
+}
+.cs-free {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 30px;
+  margin: 0 28px 20px;
+  padding: 16px 0 0;
+  border-top: 1px dashed #cbd4cc;
+}
+.cs-free label {
+  font-size: 11px;
+  color: #61796c;
+}
+.cs-free label > span {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+.cs-free input {
+  min-width: 0;
+  width: 100%;
+  accent-color: #237e79;
+  cursor: ew-resize;
+}
+.cs-free output {
+  font-family: var(--mono);
+  font-size: 11px;
+  flex-shrink: 0;
+  min-width: 64px;
+  text-align: right;
+}
+.prose .cs-free p {
+  font-size: 11px;
+  color: #7c8b81;
+  margin: 0;
+  grid-column: 1 / -1;
+}
+.cs-explanation {
+  border-top: 1px solid #dcded6;
+}
+.camera-study summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 28px;
+  font-size: 12px;
+  user-select: none;
+}
+.camera-study summary::-webkit-details-marker {
+  display: none;
+}
+.camera-study summary i {
+  font-family: var(--mono);
+  font-style: normal;
+  color: #86998b;
+  font-size: 10px;
+  margin-right: 15px;
+}
+.camera-study summary:hover {
+  background: #f3f5ed;
+}
+.cs-summary-mark {
+  font-size: 18px;
+  color: #7c8b81;
+  line-height: 1;
+}
+.cs-explanation[open] .cs-summary-mark {
+  transform: rotate(45deg);
+}
+.cs-explanation-body {
+  border-top: 1px solid #e2e6dc;
+  background: #f6f7f1;
+}
+.cs-section-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 28px 0;
+  font-size: 12px;
+}
+.cs-section-title small {
+  font-size: 10px;
+  color: #839386;
+}
+.cs-ray-wrap {
+  padding: 0 12px;
+}
+.cs-rays {
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+.cs-ray-labels {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+}
+.cs-ray-handle {
+  cursor: ew-resize;
+  touch-action: none;
+  outline: none;
+}
+.cs-ray-handle:focus-visible rect,
+.cs-ray-handle:hover rect {
+  fill: #237e7910;
+  stroke: #9fb8a7;
+  stroke-dasharray: 3 4;
+  stroke-width: 1;
+}
+.cs-ray-distances {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  font-size: 10px;
+  color: #7c8b81;
+  margin: -8px 18px 16px;
+}
+.cs-ray-distances b {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: #394e52;
+  margin-left: 10px;
+}
+.cs-argument {
+  padding: 10px 40px 30px;
+  max-width: 840px;
+  margin: auto;
+}
+.prose .cs-argument p {
+  font-family: var(--cs-serif);
+  font-size: 15px;
+  line-height: 1.95;
+  margin: 0;
+  color: #586961;
+}
+.cs-equations {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 26px 0;
+  gap: 24px;
+}
+.cs-equation {
+  text-align: center;
+  padding: 16px 8px;
+  border-top: 1px solid currentColor;
+}
+.cs-equation > span {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.cs-equation > div {
+  font-size: 22px;
+  padding: 16px 0;
+}
+.cs-equation small {
+  font-size: 11px;
+  opacity: 0.8;
+}
+.cs-equation output {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.cs-conclusion {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 30px;
+  align-items: center;
+}
+.cs-conclusion > div {
+  font-size: 22px;
+  color: #385b56;
+  text-align: center;
+}
+.prose .cs-conclusion p {
+  font-size: 13px;
+  line-height: 1.9;
+}
+.cs-conclusion strong {
+  font-weight: 600;
+  color: #385b56;
+}
+.cs-code {
+  background: #eef1e8;
+  border-top: 1px solid #d9e0d3;
+}
+.cs-code summary > span:last-child {
+  font-size: 10px;
+  color: #839386;
+}
+.prose .cs-code pre {
+  margin: 0 28px;
+  padding: 18px 22px;
+  background: #fafbf6;
+  border: 1px solid #dfe5d8;
+  border-radius: 3px;
+  line-height: 1.8;
+  font-size: 12px;
+  max-height: none;
+  overflow-x: auto;
+}
+.prose .cs-code pre code {
+  font-family: var(--mono);
+  font-size: inherit;
+  color: #394e52;
+  white-space: pre;
+}
+.cs-code footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 28px 18px;
+  font-size: 10px;
+  color: #7d8e7f;
+}
+.prose .cs-error {
+  margin: 0;
+  padding: 12px 28px;
+  color: #a44736;
+  font-size: 13px;
+  background: #fcf1ea;
+}
+.camera-study[data-focus='front'] [data-role='back'],
+.camera-study[data-focus='back'] [data-role='front'] {
+  opacity: 0.25;
+}
+/* Keep the image and its controls together in a short desktop window. */
+@media (min-width: 1000px) and (max-height: 900px) {
+  .prose > .camera-study.camera-study {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 218px;
+  }
+  .cs-heading {
+    grid-column: 1 / -1;
+    padding: 18px 24px;
+  }
+  .cs-scene {
+    grid-column: 1;
+    grid-row: 2 / 5;
+    align-self: start;
+    border-right: 1px solid #dcded6;
+  }
+  .cs-measurements {
+    grid-column: 2;
+    grid-row: 2;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px 18px;
+    border-top: 0;
+  }
+  .cs-metric + .cs-metric {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .cs-metric strong {
+    font-size: 21px;
+  }
+  .cs-metric small {
+    font-size: 9px;
+  }
+  .cs-motion {
+    grid-column: 2;
+    grid-row: 3;
+    grid-template-columns: 36px 1fr;
+    padding: 16px 18px 0;
+    gap: 12px;
+  }
+  .cs-play {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .cs-lens {
+    grid-column: 2;
+    grid-row: 1;
+    border-left: 0;
+    padding-left: 14px;
+  }
+  .cs-rail-wrap {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .cs-rail-heading {
+    font-size: 9px;
+  }
+  .cs-rail-heading b {
+    font-size: 10px;
+    margin-left: 3px;
+  }
+  .cs-bottom-bar {
+    grid-column: 2;
+    grid-row: 4;
+    display: block;
+    padding: 0 18px 14px;
+  }
+  .cs-presets button {
+    font-size: 10px !important;
+    padding: 3px 8px;
+  }
+  .cs-mode {
+    margin-top: 7px;
+  }
+  .cs-explanation,
+  .cs-free,
+  .cs-error {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 760px) {
+  .prose > .camera-study.camera-study {
+    border-radius: 5px;
+    margin-top: 24px;
+  }
+  .cs-heading {
+    padding: 18px;
+  }
+  .prose .cs-heading h3 {
+    font-size: 21px;
+  }
+  .cs-kicker {
+    font-size: 10px;
+    gap: 14px;
+  }
+  .cs-kicker > span {
+    font-size: 8px;
+  }
+  .cs-measurements {
+    padding: 14px 18px;
+    gap: 12px;
+  }
+  .cs-metric {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .cs-metric + .cs-metric {
+    padding-left: 14px;
+  }
+  .cs-metric strong {
+    text-align: left;
+    font-size: 21px;
+  }
+  .cs-metric small {
+    text-align: left;
+    font-size: 9px;
+  }
+  .cs-metric > span {
+    font-size: 10px;
+  }
+  .cs-motion {
+    padding: 19px 18px 4px;
+    gap: 14px;
+    grid-template-columns: 32px 1fr 85px;
+  }
+  .cs-play {
+    width: 32px;
+    height: 32px;
+  }
+  .cs-lens {
+    padding-left: 14px;
+  }
+  .cs-lens strong {
+    font-size: 14px;
+  }
+  .cs-rail-heading {
+    font-size: 9px;
+  }
+  .cs-rail-heading b {
+    font-size: 10px;
+    margin-left: 3px;
+  }
+  .cs-bottom-bar {
+    padding: 0 18px 18px;
+  }
+  .cs-scene-note {
+    left: 14px;
+    top: 12px;
+    font-size: 9px;
+    gap: 6px;
+  }
+  .cs-framing-note {
+    display: none;
+  }
+  .cs-drag-hint {
+    bottom: 7px;
+    font-size: 9px;
+  }
+  .cs-object-label {
+    font-size: 12px;
+    gap: 4px;
+  }
+  .cs-object-label span {
+    font-size: 9px;
+  }
+  .camera-study summary {
+    padding: 16px 18px;
+    font-size: 11px;
+  }
+  .cs-section-title {
+    padding: 20px 18px 4px;
+    font-size: 11px;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .cs-ray-labels {
+    font-size: 32px;
+  }
+  .cs-ray-handle rect {
+    x: -66px;
+    y: -66px;
+    width: 132px;
+    height: 132px;
+  }
+  .cs-ray-handle path {
+    transform: scale(1.6);
+  }
+  .cs-ray-handle circle {
+    r: 12px;
+  }
+  .cs-argument {
+    padding: 16px 18px 24px;
+  }
+  .prose .cs-argument p {
+    font-size: 13px;
+  }
+  .cs-equation > div,
+  .cs-conclusion > div {
+    font-size: 20px;
+  }
+  .cs-equations {
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .cs-equation small {
+    font-size: 9px;
+  }
+  .cs-conclusion {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .cs-free {
+    grid-template-columns: 1fr;
+    margin: 0 18px 18px;
+  }
+  .prose .cs-code pre {
+    margin: 0 12px;
+    padding: 14px;
+    font-size: 10px;
+  }
+  .cs-code footer {
+    padding: 12px 18px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-drag-hint {
+    transition: none;
+  }
+}

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f7f7f3" />
+    <meta
+      name="description"
+      content="一本可以直接操作的计算机图形学教材。将数学、交互图解与可读的 TypeScript 算法放在同一书页中。"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>从像素到光线 · 图形学交互书</title>
+    <script type="module" src="/src/reader/main.ts"></script>
+  </head>
+  <body>
+    <header class="book-topbar">
+      <button
+        id="toggle-navigation"
+        class="icon-button"
+        aria-label="收起或展开目录"
+        aria-expanded="true"
+      >
+        ☰
+      </button>
+      <a class="book-brand" href="?chapter=01"
+        ><span class="book-emblem">◇</span><span>图形学<small>一本可以动手的书</small></span></a
+      >
+      <span class="book-subtitle">从像素到光线 <span>·</span> 计算机图形学基础</span>
+      <button id="jump-demo" class="text-button">本章演示 ↓</button>
+    </header>
+    <aside class="book-sidebar" id="navigation" aria-label="章节目录">
+      <div class="sidebar-heading">
+        <small>COMPUTER GRAPHICS <span>VOL. 01</span></small
+        ><strong>从像素到光线</strong>
+      </div>
+      <nav id="chapter-list"></nav>
+      <details class="appendices">
+        <summary>附录与综合实践</summary>
+        <div id="appendix-list"></div>
+      </details>
+      <div class="reading-progress">
+        <span>阅读位置</span>
+        <div><i id="reading-fill"></i></div>
+        <small id="reading-label"></small>
+      </div>
+    </aside>
+    <main id="main"><article id="lesson" class="prose" aria-live="polite"></article></main>
+    <dialog id="source-dialog">
+      <header>
+        <div>
+          <small>教学算法 · TypeScript</small>
+          <h2 id="source-title"></h2>
+        </div>
+        <button id="close-source" class="icon-button" aria-label="关闭源码">×</button>
+      </header>
+      <nav id="source-tabs"></nav>
+      <pre><code id="source-code" class="language-typescript"></code></pre>
+      <footer>
+        <button id="download-source" class="text-button">下载当前文件 ↓</button
+        ><span>实际运行的源码 · 无省略</span>
+      </footer>
+    </dialog>
+  </body>
+</html>
