@@ -105,7 +105,7 @@ export const pipeline: FigureSpec = {
   id: 'desk-pixel-explained',
   chapter: '11',
   title: '一个像素的来源',
-  subtitle: '同一探针现在能读到对象、表面位置、法线与纹理坐标。',
+  subtitle: '移动像素探针，读取可见对象、表面位置、法线与纹理坐标。',
   source: '/src/book-scene/render.ts',
   animated: false,
   defaults: { ...openingDefaults, mode: 'lit' },
@@ -140,7 +140,7 @@ export const pipeline: FigureSpec = {
 export const shadows: FigureSpec = {
   id: 'desk-light-shadow',
   chapter: '10',
-  title: '移走小球后，桌面上留下什么变化',
+  title: '小球位置与桌面阴影',
   subtitle: '拖动俯视图的小球；桌面点的位置不变，光源可见性会改变。',
   source: '/src/book-scene/render.ts',
   animated: false,

@@ -136,7 +136,7 @@ export function deskState(options: Partial<DeskParameters> = {}): StudyState {
 
 export function deskSpec(): StudySpec {
   return {
-    title: '同一张桌面：从场景到一个像素',
+    title: '桌面场景的像素与表面信息',
     source: '/src/book-scene/render.ts',
     state: deskState(),
     controls: [

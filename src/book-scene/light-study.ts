@@ -14,7 +14,7 @@ import { renderDesk } from './render.ts';
 export const radiometry: FigureSpec = {
   id: 'desk-irradiance',
   chapter: '23',
-  title: '桌面这一点究竟收到多少灯光',
+  title: '桌面上的直接辐照度',
   subtitle: '拖动桌面采样点；分别核对距离、入射余弦和光源可见性。',
   source: '/src/book-scene/light-study.ts',
   animated: false,

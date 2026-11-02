@@ -31,7 +31,7 @@ $$
 
 [incremental.ts](/src/chapters/04-barycentric/incremental.ts) 中的 `lineSteps` 使用 $d_x=|\Delta x|$、$d_y=|\Delta y|$、方向符号 $s_x,s_y$ 和 $e=d_x-d_y$。一次循环先保存 $e_2=2e$，再分别决定是否沿 x、y 前进；两次判断必须使用**更新前的同一个** $e_2$。在上面的第一八分方向，$D=d_x-2e$，因此这一写法与中点决策相接。
 
-实现包含两端，并为等距候选规定固定选择。这不保证反转端点后在所有平局位置选出完全相同的样本集合；平局约定是算法的一部分。这里展示经典细线构造，不声称复现某个 GPU 的线段光栅规范，也不用于替代前面三角形的共享边规则。[Bresenham 原论文](https://ohiostate.pressbooks.pub/app/uploads/sites/45/2017/09/bresenham.pdf)与 [CMU 光栅化讲义](https://www.cs.cmu.edu/~fp/courses/graphics/pdf-color/14-raster.pdf)给出了这一增量思想的来源。
+实现包含两端，并为等距候选规定固定选择。这不保证反转端点后在所有平局位置选出完全相同的样本集合；平局约定是算法的一部分。这里的细线构造与三角形覆盖采用不同的边界规则；具体 GPU 的线段光栅规范也可能使用不同的平局约定。[Bresenham 原论文](https://ohiostate.pressbooks.pub/app/uploads/sites/45/2017/09/bresenham.pdf)与 [CMU 光栅化讲义](https://www.cs.cmu.edu/~fp/courses/graphics/pdf-color/14-raster.pdf)给出了这一增量思想的来源。
 
 ## 11 · 中点圆：把对称性变成计算量的减少
 
@@ -89,7 +89,7 @@ $$
 
 ### 从清楚的参考实现走向效率优化
 
-[scanline.ts](/src/chapters/04-barycentric/scanline.ts) 先在每行重新计算交点，以便直接核对边、交点和跨度。进一步可以建立边表与活动边表，并用 $x(y+1)=x(y)+\Delta x/\Delta y$ 更新交点；这会复用相邻行的结果，但仍须处理入表、出表与排序。当前代码没有隐藏这层优化，也没有用逐行填充替代属性插值和深度测试。
+[scanline.ts](/src/chapters/04-barycentric/scanline.ts) 先在每行重新计算交点，以便直接核对边、交点和跨度。进一步可以建立边表与活动边表，并用 $x(y+1)=x(y)+\Delta x/\Delta y$ 更新交点；这会复用相邻行的结果，但仍须处理入表、出表与排序。本实现逐行重新求交，只计算覆盖范围；属性插值和深度测试仍需分别执行。
 
 一个有用的交叉检查是将输入限制为三角形：对相同的样本中心与边界约定，扫描线覆盖应与前面的边函数覆盖一致。测试使用整数子像素顶点逐样本比较两者。对于任意浮点输入，两种计算路径的舍入仍可能不同；需要复现严格光栅规则时，应继续明确量化方式。
 

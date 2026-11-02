@@ -197,12 +197,6 @@ $$
 
 [[include:occlusion-lesson.md]]
 
-### 桌面、灯臂和小球怎样共享一张深度图
-
-开篇的桌面与小球即使由不同函数生成，投影后也必须竞争同一个像素。每次竞争保留较近的样本，才能让球面挡住桌面、让灯臂之间形成正确遮挡。这里的相交三角形实验故意移除了材质和阴影，使提交次序与深度规则可以单独核对。
-
-回到[第 11 章的像素检查](?chapter=pipeline)，对象编号和世界位置记录胜出的表面；阴影却需要另一次可见性查询。相机看得见一个桌面点，并不意味着台灯也照得到它，这正是[第 10 章](?chapter=shadows)继续研究的问题。
-
 ## 两道练习与继续阅读
 
 `exercises.ts` 有两道短练习：写出像素的深度插值，并实现逐个提交候选片元的严格深度测试。先用 0.4/0.7 验证乱序不变，用 0.4/0.4 验证先到先得，再用 $55/72$ 验证没有做二次校正。三个检查分别覆盖比较规则、平局与投影，不能相互替代。
@@ -227,8 +221,6 @@ $$
 - **Kayvon Fatahalian，CMU 15-869，2011，Lecture 5 “Rasterization and Occlusion”**：阅读可见性、逐样本 Z-buffer 与栅格化的关系。讲义讨论硬件组织，本章用普通数组显露同一个逐样本比较过程。[官方讲义 PDF](https://www.cs.cmu.edu/afs/cs/academic/class/15869-f11/www/lectures/05_rasterization.pdf)
 - **CMU 15-462/662，“Exercises 08: Depth and Transparency”**：题目中的重叠三角形说明，部分场景无法仅靠整面排序解决遮挡。本章用可逐像素检查的相交斜面构造自己的反例。[官方习题页](https://15462.courses.cs.cmu.edu/fall2021/article/9)
 - **Nathan Reed，NVIDIA，2015，“Depth Precision Visualized”**：重点读 “Why 1/z” 与 “Graphing Depth Maps”，再读浮点舍入及 reversed-Z。该文使用的符号与本章相反：其 `d` 指缓冲值，`z` 指轴向距离，阅读时先转换符号。[作者官方文章](https://developer.nvidia.com/content/depth-precision-visualized)
-
-本章公式推导、实验场景、可视化和 TypeScript 代码为原创组织；引用用于核对概念并提供继续阅读的路径。
 
 
 在仓库根目录运行 `npm run exercise -- 06` 检查本章练习；加上 `--solutions` 可检查参考实现。练习位于 `src/chapters/06-depth/exercises.ts`，参考实现位于同目录的 `solutions.ts`。

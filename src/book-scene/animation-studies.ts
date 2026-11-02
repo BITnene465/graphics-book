@@ -13,7 +13,7 @@ export const keyframes: FigureSpec = {
   id: 'desk-keyframe-motion',
   chapter: '37',
   title: '小球的位置与速度',
-  subtitle: '同一段位置变化使用物理时间；改变端点速度，对照图像与轨迹。',
+  subtitle: '时间以秒计；改变端点速度和区间时长，对照图像与位移曲线。',
   source: '/src/chapters/37-keyframes/core.ts',
   animated: true,
   initialProgress: 0,
@@ -79,7 +79,7 @@ export const kinematics: FigureSpec = {
 export const ending: FigureSpec = {
   id: 'desk-return',
   chapter: '39',
-  title: '一个周期之后',
+  title: '周期运动与积分误差',
   subtitle: '比较解析运动与数值积分，检查一个周期后的位置、能量与成像。',
   source: '/src/book-scene/motion.ts',
   animated: true,

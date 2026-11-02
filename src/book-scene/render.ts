@@ -5,10 +5,10 @@ import type { RGBImage } from '../math/image.ts';
 import { dot, sub, normalize } from '../math/vector.ts';
 import { lookAt, perspective, orthographic } from '../chapters/03-camera/core.ts';
 import { renderFrame } from '../chapters/11-pipeline/core.ts';
-import { rasterizeWorld, sceneMatrices, shadowQuery } from '../chapters/10-shadows/core.ts';
+import { rasterizeWorld, shadowQuery } from '../chapters/10-shadows/core.ts';
 import { pointIrradiance } from '../chapters/23-radiometry/core.ts';
 import { deskState } from './model.ts';
-import { inverse, matVec } from '../math/matrix.ts';
+import { compose, inverse, matVec } from '../math/matrix.ts';
 import { modelMatrix } from '../chapters/11-pipeline/core.ts';
 
 export function deskAlbedo(
@@ -31,7 +31,7 @@ export function deskAlbedo(
   return color;
 }
 
-/** 复用 03/10/11/23 章；像素、深度和对象身份来自同一次真正的光栅化。 */
+/** 相机的视图与投影；孔径样本只平移机位，并保持对焦平面的位置。 */
 export function deskCamera(
   state: StudyState,
   width: number,
@@ -58,13 +58,21 @@ export function deskCamera(
   return { view, projection };
 }
 
+/** 点光源的阴影射线从光源发散。单张透视图只覆盖朝下的 150° 视锥。 */
+export function deskLightMatrix(light: Vec3) {
+  return compose(
+    perspective(150, 1, 0.05, 20),
+    lookAt(light, [light[0], light[1] - 1, light[2]], [0, 0, -1]),
+  );
+}
+
 export function deskRenderer(state = deskState()) {
   const scene = buildScene(state),
     light = state.objects.find((o) => o.key === 'light')!.position;
   const ball = state.objects.find((o) => o.key === 'ball')!;
   const ballInverse = inverse(modelMatrix(ball.position, ball.rotation, ball.scale));
   const mode = String(state.params.mode);
-  const lightVP = sceneMatrices(light).lightVP,
+  const lightVP = deskLightMatrix(light),
     shadowSize = Number(state.params.shadowSize);
   // bulb 是点光源的显示标记，不能让标记自身遮住这个理想点光源。
   const shadow =
@@ -122,7 +130,7 @@ export function deskRenderer(state = deskState()) {
               Number(state.params.pcf),
             ).visibility
           : 1;
-        // 均匀环境辐照度 0.7 是已知输入；这里没有伪装成求解过的间接光。
+        // 环境辐照度 0.7 W/m² 是给定输入；本模型未求解间接反射。
         return rho.map((x) => (x / Math.PI) * (0.7 + E * visibility)) as Vec3;
       },
     });

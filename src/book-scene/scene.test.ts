@@ -9,7 +9,8 @@ import { homography, warp } from '../chapters/31-registration/core.ts';
 import { buildScene } from '../render/scenes.ts';
 import { DESK, deskState, lampJoints } from './model.ts';
 import { shadeProfile, latheMesh, latheScene, shadeStrip } from './geometry.ts';
-import { deskCamera, renderDesk, deskImage } from './render.ts';
+import { deskCamera, deskLightMatrix, renderDesk, deskImage } from './render.ts';
+import { rasterizeWorld, shadowQuery } from '../chapters/10-shadows/core.ts';
 import { reachLamp, deskMotion } from './motion.ts';
 import { deskMatte, lensImage } from './imaging.ts';
 import { opening } from './foundations.ts';
@@ -99,6 +100,38 @@ test('每个可见像素的表面位置能由真实三角形与记录权重重�
     );
     close(world, Array.from(f.world.slice(3 * i, 3 * i + 3)));
   }
+});
+
+test('点光源沿同一射线查询同一阴影纹素，遮挡随透视距离放大', () => {
+  const light: Vec3 = [0, 2, 0],
+    vp = deskLightMatrix(light);
+  const project = (p: Vec3) => {
+    const q = matVec(vp, [...p, 1]);
+    return [q[0] / q[3], q[1] / q[3]];
+  };
+  // p = light + t * [0.8, -1, 0.3]；正交阴影图不满足这个不变量。
+  for (const t of [0.5, 1, 2]) close(project([0.8 * t, 2 - t, 0.3 * t]), project([0.8, 1, 0.3]));
+
+  // y=1 上、x∈[0.4,0.8] 的遮挡片在 y=0 投下 x∈[0.8,1.6] 的影子。
+  const a: Vec3 = [0.4, 1, -0.3],
+    b: Vec3 = [0.8, 1, -0.3],
+    c: Vec3 = [0.8, 1, 0.3],
+    d: Vec3 = [0.4, 1, 0.3],
+    shadow = rasterizeWorld(
+      [
+        [a, b, c],
+        [a, c, d],
+      ],
+      vp,
+      256,
+    );
+  const query = (p: Vec3) => shadowQuery(p, vp, shadow.depth, 256, 256, 0, 0);
+  assert.equal(query([1.2, 0, 0]).visibility, 0);
+  assert.equal(query([0.4, 0, 0]).visibility, 1);
+  assert.equal(query([1.9, 0, 0]).visibility, 1);
+  // 视锥外没有遮挡记录，沿用第 10 章明确的可见边界策略。
+  assert.equal(query([0, 3, 0]).inside, false);
+  assert.equal(query([0, 3, 0]).visibility, 1);
 });
 
 test('孔径视图保持对焦平面；离焦偏移符合相似三角形', () => {

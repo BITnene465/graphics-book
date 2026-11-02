@@ -58,8 +58,8 @@ export const shade: FigureSpec = {
 export const subdivision: FigureSpec = {
   id: 'desk-shade-subdivision',
   chapter: '16',
-  title: '同一个灯罩：提高采样，还是改变极限曲面',
-  subtitle: '左侧是开篇灯罩母线的粗四边形网格；右侧实际应用 Catmull–Clark。',
+  title: '灯罩控制网格与细分曲面',
+  subtitle: '左侧是母线采样得到的粗四边形网格；右侧显示 Catmull–Clark 细分结果。',
   source: '/src/book-scene/geometry-studies.ts',
   animated: false,
   orbitPanels: ['粗网格', '细分后的网格'],
@@ -174,7 +174,7 @@ export const parameterization: FigureSpec = {
 export const stereo: FigureSpec = {
   id: 'desk-reconstruction',
   chapter: '21',
-  title: '由两幅观测找回小球的位置',
+  title: '由双目观测重建空间位置',
   subtitle: '球的位置来自桌面场景；改变基线和像面误差，核对三角测量的重建偏差。',
   source: '/src/book-scene/geometry-studies.ts',
   animated: false,

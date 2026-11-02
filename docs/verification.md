@@ -1,6 +1,6 @@
 # Web 版验收记录
 
-当前验收见 [v3.1 跨章实验](verification-v3.1.md)；上一版记录见 [v3.0 统一扩展版](verification-v3.md)。本文件保留 v2.1.0 基础篇及此前迭代的记录，数字对应当时版本，不表示当前演示数量。
+当前审校见 [v3.1.1 全书文字与模型复审](editorial-review-v3.1.1.md)；跨章实验验收见 [v3.1](verification-v3.1.md)，扩展版记录见 [v3.0](verification-v3.md)。本文件保留 v2.1.0 基础篇及此前迭代的记录，数字对应当时版本，不表示当前演示数量。
 
 日期：2026-11-01。检查对象为 Web 版 2.0.0，环境为 macOS、Node.js 23.11.0、npm 11.12.1，以及 Playwright 驱动的 Chromium。仓库要求 Node.js 22.18 或更新版本，CI 配置使用 Node.js 24；本地结果不代表已在所有支持版本与设备上验证。
 

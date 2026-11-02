@@ -125,7 +125,7 @@ export const lens: FigureSpec = {
   id: 'desk-aperture',
   chapter: '32',
   title: '桌面上的景深',
-  subtitle: '实际移动孔径样本并重新投影；颜色在线性域累积，未使用图像模糊滤镜。',
+  subtitle: '从不同孔径位置重新投影场景，平均线性颜色，比较对焦面前后的清晰度。',
   source: '/src/book-scene/imaging.ts',
   animated: false,
   defaults: { focus: 5.5, aperture: 0.18, samples: 13 },
@@ -158,7 +158,7 @@ export const lens: FigureSpec = {
 export const sensor: FigureSpec = {
   id: 'desk-sensor',
   chapter: '33',
-  title: '同一幅图像怎样成为传感器读数',
+  title: '颜色采样与传感器噪声',
   subtitle: '桌面场景的线性 RGB 经过 RGGB 采样、光子与读出噪声，再重建三个通道。',
   source: '/src/book-scene/imaging.ts',
   animated: false,

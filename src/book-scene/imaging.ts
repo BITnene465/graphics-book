@@ -1,7 +1,7 @@
 import { referenceFrame, deskRenderer } from './render.ts';
 import { deskState } from './model.ts';
 
-/** 从真实可见对象的 2×2 子像素得到覆盖真值；不声称由单张 RGB 猜出了 alpha。 */
+/** 根据可见对象编号，以 2×2 子样本估计像素覆盖率。 */
 export function deskMatte(object: 'ball' | 'lamp' | 'both') {
   const source = referenceFrame(192),
     width = 96,

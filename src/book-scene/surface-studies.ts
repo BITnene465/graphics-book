@@ -65,7 +65,7 @@ export const triangle: FigureSpec = {
 export const pattern: FigureSpec = {
   id: 'desk-ball-pattern',
   chapter: '09',
-  title: '小球的斜纹是一条函数',
+  title: '用周期函数生成球面纹样',
   subtitle: '只改变纹样周期与相位；比较反射率和受光结果，几何与阴影位置保持。',
   source: '/src/book-scene/render.ts',
   animated: false,

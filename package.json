@@ -1,6 +1,6 @@
 {
   "name": "graphics-book",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "private": true,
   "type": "module",
   "description": "一本可以直接操作的计算机图形学教材，算法与演示均使用 TypeScript。",

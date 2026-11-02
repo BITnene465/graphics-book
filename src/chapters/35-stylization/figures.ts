@@ -10,7 +10,7 @@ export const figures: FigureSpec[] = [
     id: 'toon-abstraction',
     chapter: '35',
     title: '分开观察保边平滑、色阶与线条',
-    subtitle: '开篇桌面的实际线性图像经过三个可检查的步骤。',
+    subtitle: '以桌面场景图像为输入，比较各步骤保留的明暗结构与纹理细节。',
     source: '/src/chapters/35-stylization/core.ts',
     animated: false,
     defaults: { range: 0.15, radius: 2, levels: 5, threshold: 0.06 },

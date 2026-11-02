@@ -49,8 +49,8 @@ export const figures: FigureSpec[] = [
   {
     id: 'diffuse-path-image',
     chapter: '26',
-    title: '从桌面取出小球，单独研究随机光路',
-    subtitle: '保留桌面场景的球、地面与相机；暂用均匀材质和环境光隔离路径采样。',
+    title: '环境照明下的漫反射路径',
+    subtitle: '球面与平面采用均匀反射率；比较样本数和反射上限对图像的不同影响。',
     source: '/src/chapters/26-path-tracing/core.ts',
     animated: true,
     duration: 10,

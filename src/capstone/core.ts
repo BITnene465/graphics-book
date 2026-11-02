@@ -4,9 +4,10 @@ import type { StudySpec, StudyState } from '../render/scenes.ts';
 import { renderStudy } from '../render/render-study.ts';
 import type { StudyOutput } from '../render/render-study.ts';
 import { encodeRgba } from '../chapters/01-pixels/core.ts';
-import { rasterizeWorld, sceneMatrices, shadowQuery } from '../chapters/10-shadows/core.ts';
+import { rasterizeWorld, shadowQuery } from '../chapters/10-shadows/core.ts';
 import type { Vec3 } from '../math/vector.ts';
 import { deskSpec } from '../book-scene/model.ts';
+import { deskLightMatrix } from '../book-scene/render.ts';
 
 export function capstoneSpec(): StudySpec {
   const spec = deskSpec();
@@ -42,7 +43,7 @@ export function renderCapstone(state = capstoneSpec().state, size = 384, samples
   return { width: size, height: size, linear, pixels: encodeRgba(linear) };
 }
 
-/** 读取实际像素，再用其世界位置重做光源查询；没有编造演示数字。 */
+/** 用像素记录的世界位置查询阴影，投影与渲染器保持一致。 */
 export function inspectCapstone(state: StudyState, frame: StudyOutput, row: number, col: number) {
   if (
     !Number.isInteger(row) ||
@@ -60,7 +61,7 @@ export function inspectCapstone(state: StudyState, frame: StudyOutput, row: numb
     normal = [...frame.normal.slice(i * 3, i * 3 + 3)],
     scene = buildScene(state),
     light = state.objects.find((o) => o.kind === 'light')!.position;
-  const vp = sceneMatrices(light).lightVP,
+  const vp = deskLightMatrix(light),
     size = Number(state.params.shadowSize);
   const shadow = rasterizeWorld(
     scene.faces
