@@ -10,7 +10,7 @@ $$
 f_r(\omega_i,\omega_o)=\frac{dL_o(\omega_o)}{dE_i(\omega_i)}.
 $$
 
-其单位为 sr⁻¹。反射率 $\rho$ 无量纲，两者不能互换。理想 Lambert 漫反射取 $f_r=\rho/\pi$，因为 $\int_{\Omega^+}\cos\theta\,d\omega=\pi$。[第 07 章](?chapter=lighting)的余弦明暗项隐藏了照明和系数约定；进入物理积分后，应显式保留 $1/\pi$。
+这里先固定观察方向 $\omega_o$：从来光方向 $\omega_i$ 增加一小份辐照度 $dE_i$，观察该方向的出射辐亮度增加了多少 $dL_o$。两者的比例便是 BRDF，单位为 sr⁻¹。反射率 $\rho$ 无量纲，两者不能互换。理想 Lambert 漫反射取 $f_r=\rho/\pi$，因为 $\int_{\Omega^+}\cos\theta\,d\omega=\pi$。[第 07 章](?chapter=lighting)的余弦明暗项隐藏了照明和系数约定；进入物理积分后，应显式保留 $1/\pi$。
 
 归一化中的 $\pi$ 可以直接算出。以法线为极轴，$d\omega=\sin\theta\,d\theta\,d\varphi$，则
 
@@ -33,15 +33,39 @@ f_r=\frac{D(h)F(\omega_i\cdot h)G(\omega_i,\omega_o)}
 h=\frac{\omega_i+\omega_o}{\|\omega_i+\omega_o\|}.
 $$
 
-$D$ 描述微表面法线分布，$F$ 描述界面反射，$G$ 描述遮蔽与阴影。它们各有作用，不能用提高高光指数代替全部模型。本图采用各向同性 GGX 分布与 Smith 遮蔽，参数 $\alpha$ 直接控制分布宽度，与软件界面中 roughness 的映射关系须由该软件另行定义。
+$h$ 是两个单位方向的角平分方向，与[第 07 章](?chapter=lighting)的半程向量相同：只有法线朝向 h 的理想微镜面，才会把来自 $\omega_i$ 的光反射到 $\omega_o$。$D$ 描述这些微表面法线的分布，$F$ 描述界面反射，$G$ 描述微表面之间的遮蔽与阴影。本图采用各向同性 GGX 分布与 Smith 遮蔽，参数 $\alpha$ 直接控制分布宽度，与软件界面中 roughness 的映射关系须由该软件另行定义。
+
+<details>
+<summary>对照核心代码：D、F、G 怎样求值</summary>
+
+令 $c_h=n\cdot h$、$c_i=n\cdot\omega_i$、$c_o=n\cdot\omega_o$。在两个方向均位于上半球时，本例使用
+
+$$
+D(h)=\frac{\alpha^2}{\pi\left[c_h^2(\alpha^2-1)+1\right]^2},\qquad
+G_1(c)=\frac{2c}{c+\sqrt{\alpha^2+(1-\alpha^2)c^2}},
+$$
+
+$$
+G=G_1(c_i)G_1(c_o).
+$$
+
+它们分别对应 `ggxDistribution()` 与 `smithG1()`。D 按微表面的投影面积归一化，即 $\int D(h)(n\cdot h)\,d\omega_h=1$，不能把 D 本身直接当作方向概率密度。F 使用下一节的 Fresnel 反射率，入射余弦为 $\omega_i\cdot h$，相对的是微表面法线 h，而非宏观法线 n。`ggx()` 将这三项除以 $4c_ic_o$，得到本节采用的单次散射 BRDF。
+
+</details>
 
 [[demo:microfacet-lobe]]
 
-曲线半径使用 $\log(1+f_r)/3$ 压缩显示，以免窄峰挤出画布；数值栏仍报告真实 BRDF。分布展宽并不意味着反射能量凭空增加。单次散射微表面模型忽略微表面间的多次反射，粗糙时可能损失能量；完整讨论见 [PBRT 微表面章节](https://pbr-book.org/4ed/Reflection_Models/Roughness_Using_Microfacet_Theory)。
+从原点出发的角度表示观察方向 $\omega_o$。蓝色曲线先对 BRDF 数值取 $\log(1+f_r)$，再除以本图采样峰值对应的 $\log(1+f_{\max})$，使最大显示半径为 1；这样弱反射和窄峰都能看清。拖动观察方向手柄，红点给出曲线上的对应位置，数值栏列出真实 BRDF、采样峰值及 D、F、G。不同参数下的曲线各自归一化，因此其显示高度不能直接比较反射强弱，比较时应读取数值。
+
+把入射角设为 30°、观察方向调到 −30°，半程向量应与 n 重合；固定这两个方向再改变粗糙度，观察曲线宽度与 BRDF 读数如何变化。
+
+分布展宽并不意味着反射能量凭空增加。单次散射微表面模型忽略微表面间的多次反射，粗糙时可能损失能量；完整讨论见 [PBRT 微表面章节](https://pbr-book.org/4ed/Reflection_Models/Roughness_Using_Microfacet_Theory)。
 
 ## 3 · 折射方向与界面能量是两件事
 
-折射率为 $\eta_i,\eta_t$，Snell 定律为 $\eta_i\sin\theta_i=\eta_t\sin\theta_t$。若求得 $\sin^2\theta_t>1$，不存在传播折射方向，发生全反射。它只可能发生在从较高折射率进入较低折射率的相应角度范围。
+图中光线从上方介质进入下方介质，折射率分别记为 $\eta_i,\eta_t$；角度均从垂直界面的法线量起。Snell 定律为 $\eta_i\sin\theta_i=\eta_t\sin\theta_t$。例如空气进入折射率 1.5 的介质，入射角 30° 给出 $\sin\theta_t=1/3$，折射角约为 19.47°，更靠近法线。若求得 $\sin^2\theta_t>1$，不存在传播折射方向，发生全反射；它只可能发生在从较高折射率进入较低折射率时。
+
+临界角满足 $\sin\theta_c=\eta_t/\eta_i$，所以 1.5 的介质到空气时约为 41.81°。达到临界角时，折射方向沿界面、透射通量为零；本图将这一边界与全反射一起处理，不绘制折射箭头。黄色箭头沿入射光的传播方向，与前面的 $\omega_i$ 朝向相反；切换传播次序时，上下介质标签随之交换。
 
 [[demo:fresnel-refraction]]
 

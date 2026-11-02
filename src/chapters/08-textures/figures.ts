@@ -300,7 +300,7 @@ export const figures: FigureSpec[] = [
     id: 'elliptical-footprint',
     chapter: '08',
     title: '足迹的方向也会改变结果',
-    subtitle: '同一中心与跨度，旋转椭圆会选择不同的实际纹素。',
+    subtitle: '固定查询位置，比较 Ripmap 与椭圆加权实际使用的纹素和权重。',
     source: source + 'footprint-filters.ts',
     defaults: { point: [0.5, 0.5], major: 12, minor: 3, angle: 35 },
     controls: [
@@ -320,9 +320,24 @@ export const figures: FigureSpec[] = [
         b = number(p, 'minor'),
         angle = number(p, 'angle'),
         result = ellipseFilter(image, uv, a, b, angle),
-        m = Math.max(...result.weights);
+        ripmap = ripmapProbe(buildRipmap(image), uv, result.lodXY),
+        ripWeights = ripmapWeights(32, 32, uv, result.lodXY),
+        maximum = Math.max(...result.weights, ...ripWeights),
+        peaks: Record<string, number> = {};
       d.panel('足迹', [-0.1, 1.1, -0.1, 1.25], () => {
         bitmap(d, image, [0, 0], [1, 1], true);
+        const [rx, ry] = result.spans.map((s) => s / 64);
+        d.line(
+          [
+            [uv[0] - rx, uv[1] - ry],
+            [uv[0] + rx, uv[1] - ry],
+            [uv[0] + rx, uv[1] + ry],
+            [uv[0] - rx, uv[1] + ry],
+            [uv[0] - rx, uv[1] - ry],
+          ],
+          palette.blue,
+          1.5,
+        );
         const theta = (angle * Math.PI) / 180;
         d.line(
           Array.from({ length: 81 }, (_, i) => {
@@ -337,24 +352,56 @@ export const figures: FigureSpec[] = [
           2.5,
         );
         d.handle(uv, 'point', 'UV', { limits: [0, 1, 0, 1] });
+        d.text([0, 1.12], '源纹理与足迹', palette.ink, 13);
       });
-      d.panel('权重', [-0.1, 1.1, -0.1, 1.25], () => {
-        bitmap(
-          d,
-          texture(32, 32, (x, y) => {
-            const w = result.weights[y * 32 + x] / m;
-            return [w, 0.5 * w, 0.1 * w];
-          }),
-          [0, 0],
-          [1, 1],
-          true,
-        );
-      });
+      for (const [label, weights] of [
+        ['Ripmap', ripWeights],
+        ['椭圆加权', result.weights],
+      ] as const) {
+        const peak = Math.max(...weights),
+          index = weights.indexOf(peak),
+          x = ((index % 32) + 0.5) / 32,
+          y = 1 - (Math.floor(index / 32) + 0.5) / 32;
+        peaks[label + ' 最大权重'] = peak;
+        d.panel(label, [-0.1, 1.1, -0.1, 1.25], () => {
+          bitmap(
+            d,
+            texture(32, 32, (x, y) => {
+              const w = weights[y * 32 + x] / maximum;
+              return [w, 0.5 * w, 0.1 * w];
+            }),
+            [0, 0],
+            [1, 1],
+            true,
+          );
+          d.line(
+            [
+              [x - 0.025, y],
+              [x + 0.025, y],
+            ],
+            palette.red,
+            1.5,
+          );
+          d.line(
+            [
+              [x, y - 0.025],
+              [x, y + 0.025],
+            ],
+            palette.red,
+            1.5,
+          );
+          d.text([0, 1.12], label + ' 权重', palette.ink, 13);
+        });
+      }
       d.values = {
-        实际纹素: result.uniqueTexels,
-        双线性回退: result.fallback,
-        '线性 RGB': result.color,
-        权重和: result.weights.reduce((a, b) => a + b, 0),
+        'Ripmap LOD': ripmap.lod,
+        'Ripmap 线性 RGB': ripmap.color,
+        '椭圆线性 RGB': result.color,
+        ...peaks,
+        椭圆内中心数: result.sampledCenters,
+        椭圆实际纹素: result.uniqueTexels,
+        椭圆双线性回退: result.fallback,
+        权重和: [ripWeights, result.weights].map((weights) => weights.reduce((a, b) => a + b, 0)),
       };
       return d.result();
     },

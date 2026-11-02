@@ -69,7 +69,7 @@ export class FigureView {
   ) {
     this.host = host;
     this.spec = spec;
-    this.params = structuredClone(saved?.params ?? spec.defaults);
+    this.params = structuredClone({ ...spec.defaults, ...saved?.params });
     this.progress = saved?.progress ?? spec.initialProgress ?? 1;
     this.views = new Map(saved?.views ?? []);
     this.panel = saved?.panel ?? '';

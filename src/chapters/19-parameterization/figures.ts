@@ -91,7 +91,7 @@ export const figures: FigureSpec[] = [
           faces: [[0, 1, 2]],
         },
         v = distortion(m, uv, [0, 1, 2]);
-      d.panel('单位切平面', [-0.5, 1.8, -0.5, 1.8], () => {
+      d.panel('单位切平面', [-0.6, 2.6, -1.6, 1.6], () => {
         d.polygon([
           [0, 0],
           [1, 0],
@@ -106,7 +106,7 @@ export const figures: FigureSpec[] = [
           2,
         );
       });
-      d.panel('UV 映射', [-0.5, 1.8, -0.5, 1.8], () => {
+      d.panel('UV 映射', [-0.6, 2.6, -1.6, 1.6], () => {
         d.polygon(uv, v.det > 0 ? palette.blue : palette.red);
         d.line(
           Array.from({ length: 65 }, (_, i) => {
@@ -118,7 +118,7 @@ export const figures: FigureSpec[] = [
           2,
         );
         uv.forEach((x, i) =>
-          d.handle(x, 'uv', 'UV' + i, { index: i, limits: [-0.4, 1.7, -0.4, 1.7] }),
+          d.handle(x, 'uv', 'UV' + i, { index: i, limits: [-0.4, 2.4, -1.4, 1.4] }),
         );
       });
       d.values = {

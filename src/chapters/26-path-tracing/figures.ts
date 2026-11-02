@@ -57,7 +57,7 @@ export const figures: FigureSpec[] = [
     defaults: { samples: 12, bounces: 3, seed: 11, position: [...DESK.ball] },
     controls: [
       slider('samples', '每像素样本', 1, 48, 1),
-      slider('bounces', '反射上限', 1, 8, 1),
+      slider('bounces', '反射上限', 0, 8, 1),
       slider('seed', '随机种子', 1, 30, 1),
     ],
     compute(p, progress) {

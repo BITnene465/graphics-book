@@ -11,7 +11,9 @@ $$
 \mathcal E=\frac12(v^2+\omega^2x^2).
 $$
 
-连续解能量恒定。显式 Euler 先用旧速度更新位置，再用旧位置更新速度；辛 Euler 先更新速度，再用新速度更新位置：
+这里 x 是相对平衡位置的位移，v 是速度；上方一点表示对时间求导，$\omega$ 的单位为 rad/s。回复加速度 $-\omega^2x$ 总指向平衡位置，连续解的能量 $\mathcal E$ 恒定。
+
+显式 Euler 用旧状态计算两项增量，即 $x^{k+1}=x^k+\Delta t\,v^k$、$v^{k+1}=v^k-\Delta t\,\omega^2x^k$。辛 Euler 则先更新速度，再用新速度更新位置：
 
 $$
 v^{k+1}=v^k-\Delta t\,\omega^2x^k,\qquad

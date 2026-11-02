@@ -113,7 +113,7 @@ export const figures: FigureSpec[] = [
         还原距离: distanceFromDepth(stored, n, f),
         下一刻度距离差: distanceFromDepth(next, n, f) - distanceFromDepth(stored, n, f),
       };
-      d.formula = 'D(d)=\\frac{f}{f-n}-\\frac{fn}{(f-n)d}';
+      d.formula = 'D(d)=\\frac{F}{F-n}-\\frac{Fn}{(F-n)d}';
       return d.result();
     },
   },

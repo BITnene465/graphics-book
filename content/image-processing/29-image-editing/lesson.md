@@ -4,20 +4,22 @@
 
 ## 1 · 梯度决定变化，边界决定基准
 
-令待求图像为 $f$，目标图像为 $t$，引导梯度为 $g$。在编辑区域 $\Omega$ 中求
+令待求图像的一个颜色通道为 $f$，目标图像为 $t$，引导梯度为 $g=(g_x,g_y)$。$\nabla f=(f_x,f_y)$ 表示沿两个图像坐标轴的颜色变化率。$\Omega$ 是编辑区域，$\partial\Omega$ 是其边界，竖线记号表示在边界上取值。要求内部变化接近 g，同时让边界接上目标图像：
 
 $$
 \min_f\int_\Omega\|\nabla f-g\|^2\,dA,\qquad
 f|_{\partial\Omega}=t|_{\partial\Omega}.
 $$
 
-最优条件为 $\Delta f=\nabla\cdot g$。若采用本书正号离散算子 $L=-\Delta_h$，每个内部像素的方程写成
+最优条件为 $\Delta f=\nabla\cdot g$，其中 $\Delta f=f_{xx}+f_{yy}$ 是拉普拉斯，$\nabla\cdot g=\partial_xg_x+\partial_yg_y$ 是散度。两边都是对变化率再求一次变化；它们不是把梯度向量直接当成颜色。
+
+在像素网格上，可以从差分直接得到对应方程。每条邻边要求 $f_i-f_j$ 接近引导差 $g_{ij}$，对平方误差 $\sum_{\{i,j\}}(f_i-f_j-g_{ij})^2$ 中的 $f_i$ 求导，得到 $\sum_j(f_i-f_j-g_{ij})=0$。采用四邻域和本书正号离散算子 $L=-\Delta_h$，整理为
 
 $$
 4f_i-\sum_{j\in\mathcal N(i)}f_j=\sum_{j\in\mathcal N(i)}g_{ij}.
 $$
 
-这里 $g_{ij}$ 定义为从 j 到 i 的目标颜色差；纯源梯度模式取 $g_{ij}=s_i-s_j$。若改用反向差分，就必须同时改变方程右端的符号。已知边界移到右端。仅保留梯度不能确定整体常数，边界正是补足这项信息。
+这里 $\mathcal N(i)$ 是上下左右四个邻居，$g_{ij}$ 定义为从 j 到 i 的目标颜色差；纯源梯度模式取 $g_{ij}=s_i-s_j$，其中 s 是源图像。若改用反向差分，就必须同时改变方程右端的符号。已知边界移到右端。仅保留梯度不能确定整体常数，边界正是补足这项信息。
 
 连续条件来自能量的一阶变化：取边界为零的扰动 $\eta$，有 $\delta\mathcal E=2\int_\Omega(\nabla f-g)\cdot\nabla\eta\,dA$。分部积分后边界项消失，任意扰动下均为零要求 $\Delta f=\nabla\cdot g$。离散形式则把邻接颜色差组织成同一个二次能量。Gauss–Seidel 每次将一个内部值改为“邻居之和加右端”除以 4；固定边界始终不参与更新。
 
