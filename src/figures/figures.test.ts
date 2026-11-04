@@ -47,6 +47,25 @@ for (const spec of specs)
         );
     }
   });
+test('四色纹理在同一地址显示实际取样的颜色与权重', () => {
+  const study = specs.find((s) => s.id === 'texture-filter')!;
+  const nearest = study.compute({ ...study.defaults, filter: 'nearest' }, 1).values;
+  assert.deepEqual(nearest['所选 [行, 列]'], [1, 1]);
+  assert.equal(nearest.权重, 1);
+  assert.deepEqual(nearest['线性 RGB'], [1, 1, 1]);
+
+  const blend = study.compute(study.defaults, 1).values;
+  assert.deepEqual(blend.四个权重, [0.25, 0.25, 0.25, 0.25]);
+  assert.deepEqual(blend['线性 RGB'], [0.5, 0.5, 0.5]);
+
+  const topRight = study.compute(
+    { ...study.defaults, filter: 'nearest', point: [0.75, 0.75] },
+    1,
+  ).values;
+  assert.deepEqual(topRight['所选 [行, 列]'], [0, 1]);
+  assert.deepEqual(topRight['线性 RGB'], [0, 1, 0]);
+});
+
 test('相机特制样章仍由纯 TypeScript 场景计算驱动', () => {
   const frame = cameraFrame(defaults);
   assert.ok(frame.items.length > 20);

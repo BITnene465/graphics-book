@@ -9,9 +9,11 @@ import {
   texture,
   checkerTexture,
   buildMipmaps,
+  nearestTexelIndex,
   sampleTexture,
   sampleTrilinear,
   sampleAnisotropic,
+  footprintMetrics,
   perspectiveInterpolate,
   bilinearTaps,
 } from './core.ts';
@@ -22,6 +24,13 @@ import { renderFrame, fragmentStage } from '../11-pipeline/core.ts';
 import { lookAt, perspective } from '../03-camera/core.ts';
 
 const source = '/src/chapters/08-textures/';
+const fourColors: Vec3[] = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+  [1, 1, 1],
+];
+const cornerTexture = texture(2, 2, (col, row) => fourColors[2 * row + col]);
 const demoTexture = checkerTexture(32, 8),
   mips = buildMipmaps(demoTexture),
   rips = buildRipmap(demoTexture);
@@ -126,8 +135,8 @@ export const figures: FigureSpec[] = [
   {
     id: 'texture-filter',
     chapter: '08',
-    title: '四个纹素如何共同决定一个颜色',
-    subtitle: '拖动查询点，实际权重与颜色随位置连续改变。',
+    title: '同一地址的最近邻与双线性查询',
+    subtitle: '拖动 UV，观察最近邻选中了哪一格，以及双线性怎样混合四个邻位。',
     source: source + 'core.ts',
     defaults: { point: [0.5, 0.5], filter: 'bilinear' },
     controls: [
@@ -138,31 +147,23 @@ export const figures: FigureSpec[] = [
     ],
     animated: false,
     compute(p) {
-      const image = texture(
-          2,
-          2,
-          (x, y) =>
-            [
-              [
-                [0.1, 0.3, 0.8],
-                [0.7, 0.2, 0.08],
-              ],
-              [
-                [0.1, 0.55, 0.3],
-                [0.9, 0.75, 0.2],
-              ],
-            ][y][x] as Vec3,
-        ),
-        d = new Drawing([-0.2, 1.8, -0.2, 1.3]),
+      const d = new Drawing([-0.2, 1.8, -0.2, 1.3]),
         uv = vec2(p, 'point'),
-        value = sampleTexture(image, uv, p.filter as 'nearest' | 'bilinear'),
-        taps = bilinearTaps(uv, 2, 2);
-      bitmap(d, image, [0, 0], [1, 1], true);
+        filter = p.filter as 'nearest' | 'bilinear',
+        value = sampleTexture(cornerTexture, uv, filter);
+      bitmap(d, cornerTexture, [0, 0], [1, 1], true);
       d.handle(uv, 'point', 'UV', { limits: [0, 1, 0, 1] });
       rectangle(d, [1.2, 0.2], [0.4, 0.6], rgb(value));
       d.text([1.15, 1], '查询结果', palette.ink, 13);
-      d.values = { 四个权重: taps.weights, '线性 RGB': value };
-      d.formula = 'C=(1-s)(1-t)C_{00}+s(1-t)C_{10}+(1-s)tC_{01}+stC_{11}';
+      if (filter === 'nearest') {
+        const [col, row] = nearestTexelIndex(uv, 2, 2);
+        d.values = { '所选 [行, 列]': [row, col], 权重: 1 };
+        d.formula = 'C=I[r,c]';
+      } else {
+        d.values = { 四个权重: bilinearTaps(uv, 2, 2).weights };
+        d.formula = 'C=(1-s)(1-t)C_{00}+s(1-t)C_{10}+(1-s)tC_{01}+stC_{11}';
+      }
+      d.values['线性 RGB'] = value;
       return d.result();
     },
   },
@@ -203,9 +204,9 @@ export const figures: FigureSpec[] = [
     id: 'texture-minification',
     chapter: '08',
     title: '一个屏幕像素会覆盖多少纹素？',
-    subtitle: '对同一条纹理窗口比较点查询与足迹过滤。',
+    subtitle: '点查询作基准。改变过滤方法和足迹跨度，比较同一纹理窗口的读数与画面。',
     source: source + 'core.ts',
-    defaults: { span: 4, anisotropy: 4, filter: 'trilinear', phase: 0 },
+    defaults: { span: 4, anisotropy: 4, filter: 'trilinear', phase: 0, maxTaps: 8 },
     controls: [
       slider('span', '长轴跨度 / texel', 1, 16, 0.1),
       slider('anisotropy', '长短轴比例', 1, 16, 0.1),
@@ -215,6 +216,11 @@ export const figures: FigureSpec[] = [
         ['trilinear', '三线性'],
         ['anisotropic', '各向异性'],
       ]),
+      choice(
+        'maxTaps',
+        '各向异性采样上限 A',
+        [1, 2, 4, 8, 16].map((n) => [n, String(n)]),
+      ),
     ],
     animated: false,
     compute(p) {
@@ -222,6 +228,7 @@ export const figures: FigureSpec[] = [
         span = number(p, 'span'),
         ratio = number(p, 'anisotropy'),
         phase = number(p, 'phase'),
+        maxTaps = number(p, 'maxTaps'),
         jacobian = [
           [span / 32, 0],
           [0, span / ratio / 32],
@@ -235,7 +242,7 @@ export const figures: FigureSpec[] = [
               ? sampleTexture(demoTexture, uv)
               : p.filter === 'trilinear'
                 ? sampleTrilinear(mips, uv, Math.log2(span))
-                : sampleAnisotropic(mips, uv, jacobian);
+                : sampleAnisotropic(mips, uv, jacobian, 0, maxTaps);
         });
       for (const [key, filtered] of [
         ['点查询', false],
@@ -245,11 +252,16 @@ export const figures: FigureSpec[] = [
           bitmap(d, sample(filtered), [0, 0], [1, 1], true);
           d.text([0, 1.12], key, palette.ink, 13);
         });
+      const metrics = footprintMetrics(jacobian, demoTexture.width, demoTexture.height, 0, maxTaps);
       d.values = {
         '长轴 / texel': span,
         '短轴 / texel': span / ratio,
-        '各向同性 LOD': Math.log2(span),
+        '各向同性 LOD': metrics.lodIsotropic,
       };
+      if (p.filter === 'anisotropic') {
+        d.values['各向异性 LOD'] = metrics.lodAnisotropic;
+        d.values['长轴查询数'] = metrics.tapCount;
+      }
       return d.result();
     },
   },

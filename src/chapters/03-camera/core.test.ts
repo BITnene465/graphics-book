@@ -31,10 +31,12 @@ test('相机奇异姿态被明确拒绝', () => {
   assert.throws(() => lookAt([0, 0, 1], [0, 0, 0], [0, 0, 1]));
 });
 test('相似三角形手算：clip→NDC→屏幕', () => {
-  const p = matVec(perspective(90, 2, 1, 10), [2, 1, -4, 1]) as Vec4;
+  const width = 960,
+    height = 480;
+  const p = matVec(perspective(90, width / height, 1, 10), [2, 1, -4, 1]) as Vec4;
   close(p, [1, 1, 8 / 3, 4]);
   close(perspectiveDivide([p])[0], [0.25, 0.25, 2 / 3]);
-  close(viewport(perspectiveDivide([p]), 640, 480)[0], [400, 180]);
+  close(viewport(perspectiveDivide([p]), width, height)[0], [600, 180]);
 });
 test('近平面与远平面分别映到 -1 与 +1', () => {
   for (const m of [perspective(60, 1.8, 0.1, 100), orthographic(4, 1.8, 0.1, 100)]) {

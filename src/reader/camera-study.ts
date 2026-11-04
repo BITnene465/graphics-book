@@ -42,11 +42,11 @@ export class CameraStudy {
     this.controller = new AbortController();
     host.className = 'camera-study';
     host.dataset.figure = 'camera-framing';
-    host.setAttribute('aria-label', '前景不变，背景为何靠近？');
+    host.setAttribute('aria-label', '两道拱门的像高怎样变化？');
     host.innerHTML = `
       <header class="cs-heading">
         <div><span class="cs-kicker">相机研究 <span>01 / DOLLY ZOOM</span></span>
-        <h3>前景不变，背景为何靠近？</h3></div>
+        <h3>两道拱门的像高怎样变化？</h3></div>
         <div class="cs-actions"><button class="cs-undo" title="撤销" aria-label="撤销">${icon('undo')}</button><button class="cs-redo" title="重做" aria-label="重做">${icon('redo')}</button><button class="cs-reset" type="button" title="恢复基准构图" aria-label="重置相机研究">${icon('reset')}</button></div>
       </header>
       <div class="cs-scene">
@@ -73,7 +73,7 @@ export class CameraStudy {
         <div class="cs-lens"><span>焦距 <i>f</i></span><strong data-value="focal">38.0 <small>mm</small></strong><span class="cs-linked">随距离联动</span></div>
       </div>
       <div class="cs-bottom-bar">
-        <div class="cs-presets" aria-label="构图预设"><button type="button" data-distance="2.8">近 · 广角</button><button type="button" data-distance="15">远 · 长焦</button></div>
+        <div class="cs-presets" aria-label="构图预设"><button type="button" data-distance="15">远 · 长焦</button><button type="button" data-distance="2.8">近 · 广角</button></div>
         <button class="cs-mode" type="button" aria-pressed="false">独立调整镜头 <span>↗</span></button>
       </div>
       <div class="cs-free" hidden>

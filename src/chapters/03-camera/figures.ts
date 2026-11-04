@@ -12,7 +12,7 @@ export const figures: FigureSpec[] = [
     title: '沿射线投影到成像平面',
     subtitle: '移动物点；透视投影由相似三角形决定。',
     source: '/src/chapters/03-camera/core.ts',
-    defaults: { point: [4, 1.1], focal: 1.4, projection: 'perspective' },
+    defaults: { point: [4, 1], focal: 1, projection: 'perspective' },
     controls: [
       slider('focal', '像平面距离', 0.5, 2.5, 0.02),
       choice('projection', '投影', [
@@ -22,11 +22,12 @@ export const figures: FigureSpec[] = [
     ],
     animated: false,
     compute(p) {
-      const d = new Drawing([-0.7, 6, -2.5, 2.5]),
+      const d = new Drawing([-0.7, 8.9, -2.5, 2.5]),
         point = vec2(p, 'point'),
         f = number(p, 'focal'),
         imageY = p.projection === 'perspective' ? (f * point[1]) / point[0] : point[1];
-      d.axes(-0.4, 5.8, -2.2, 2.2);
+      d.axes(-0.4, 8.6, -2.2, 2.2);
+      d.text([8.05, -0.32], '深度 d', palette.muted, 12);
       d.line(
         [
           [f, -2.1],
@@ -44,7 +45,7 @@ export const figures: FigureSpec[] = [
         2,
       );
       d.dot([f, imageY], palette.yellow, 0.065);
-      d.handle(point, 'point', '物点', { limits: [2.7, 5.5, -2, 2] });
+      d.handle(point, 'point', '物点', { limits: [2.7, 8, -2, 2] });
       d.values = { '距离 d': point[0], '高度 y': point[1], 投影高度: imageY };
       d.formula = p.projection === 'perspective' ? "y'=f\\frac{y}{d}" : "y'=y";
       return d.result();

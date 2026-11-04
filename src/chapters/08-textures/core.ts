@@ -57,17 +57,19 @@ export function bilinearTaps(uv: Vec2, width: number, height: number) {
     weights: [(1 - s) * (1 - t), s * (1 - t), (1 - s) * t, s * t],
   };
 }
+/** 最近邻的数组地址，返回 [列, 行]；材质 v 向上，数组行号向下。 */
+export function nearestTexelIndex(uv: Vec2, width: number, height: number): Vec2 {
+  const col = Math.min(width - 1, Math.floor(clamp(uv[0]) * width));
+  const row = Math.min(height - 1, Math.floor((1 - clamp(uv[1])) * height));
+  return [col, row];
+}
 export function sampleTexture(
   image: Texture,
   uv: Vec2,
   filtering: 'nearest' | 'bilinear' = 'bilinear',
 ): Vec3 {
   if (filtering === 'nearest')
-    return texel(
-      image,
-      Math.min(image.width - 1, Math.floor(clamp(uv[0]) * image.width)),
-      Math.min(image.height - 1, Math.floor((1 - clamp(uv[1])) * image.height)),
-    );
+    return texel(image, ...nearestTexelIndex(uv, image.width, image.height));
   const { cols, rows, weights } = bilinearTaps(uv, image.width, image.height),
     result = [0, 0, 0] as Vec3;
   weights.forEach((w, i) => texel(image, cols[i], rows[i]).forEach((c, j) => (result[j] += c * w)));
